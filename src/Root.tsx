@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { App } from './App';
+import { SplashScreen } from './components/SplashScreen';
 import { MigrationPrompt } from './features/account/MigrationPrompt';
 import { CatalogAutoSync } from './features/settings/CatalogAutoSync';
 import { AppDataProvider } from './hooks/useAppData';
@@ -41,7 +42,7 @@ export function Root() {
     localDataSource ??= createLocalDataSource();
     return <AppWithData dataSource={localDataSource} cloud={false} />;
   }
-  if (status === 'loading') return <div className="boot">Parfumania</div>;
+  if (status === 'loading') return <SplashScreen label="Carregando…" />;
   if (status === 'signedOut' || !user) return <AuthPage />;
   if (recovering) return <NewPasswordPage />;
   return <CloudApp userId={user.id} />;

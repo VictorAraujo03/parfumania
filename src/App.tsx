@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect } from 'react';
 import { HashRouter, Route, Routes } from 'react-router-dom';
 import { AlertTriangle } from 'lucide-react';
+import { SplashScreen } from './components/SplashScreen';
 import { EmptyState } from './components/ui';
 import { useAppData } from './hooks/useAppData';
 import { AppLayout } from './layouts/AppLayout';
@@ -40,7 +41,7 @@ export function App() {
   const { status, error, settings } = useAppData();
   useTheme(settings.theme);
 
-  if (status === 'loading') return <div className="boot">Parfumania</div>;
+  if (status === 'loading') return <SplashScreen />;
   if (status === 'error') {
     return (
       <div className="boot">
