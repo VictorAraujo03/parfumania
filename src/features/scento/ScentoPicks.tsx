@@ -10,6 +10,7 @@ import { scentoFamily, scentoNote, scentoRole } from '../../services/scento/labe
 import type { Perfume } from '../../types';
 import { normalize } from '../../utils/text';
 import { EMPTY_FORM, formToInput } from '../collection/perfumeFormModel';
+import { ScentoText } from './ScentoText';
 
 export interface PickItem {
   name: string;
@@ -62,8 +63,8 @@ export function ScentoCredit({ page }: { page?: { label: string; url: string } }
       {page && (
         <>
           {' · '}
-          <a href={page.url} target="_blank" rel="noopener noreferrer">
-            {page.label} <ExternalLink size={11} aria-hidden />
+          <a href={page.url} target="_blank" rel="noopener noreferrer" title={page.label}>
+            Ver página no Scento <ExternalLink size={11} aria-hidden />
           </a>
         </>
       )}
@@ -141,11 +142,7 @@ export function ScentoPicks({ items, context }: { items: PickItem[]; context: st
               <strong>Em comum:</strong> {it.shared.slice(0, 6).map(scentoNote).join(', ')}
             </p>
           )}
-          {it.why && (
-            <p className="scento-pick__why" lang="en">
-              {it.why}
-            </p>
-          )}
+          {it.why && <ScentoText className="scento-pick__why" text={it.why} />}
         </li>
       ))}
     </ul>

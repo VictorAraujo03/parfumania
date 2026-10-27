@@ -112,6 +112,7 @@ const ROLE_PT: Record<string, string> = {
   office: 'Para o trabalho',
   weekend: 'Fim de semana',
   'special occasion': 'Ocasiões especiais',
+  'wild card': 'Curinga',
 };
 
 export const scentoRole = (r: string) => ROLE_PT[r.toLowerCase()] ?? cap(r);

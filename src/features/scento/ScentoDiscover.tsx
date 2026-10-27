@@ -8,6 +8,7 @@ import { resolveScento, scento, type Folio, type ScentoLean, type ScentoOccasion
 import { SCENTO_LEANS, SCENTO_OCCASIONS } from '../../services/scento/labels';
 import type { Perfume } from '../../types';
 import { ScentoCredit, ScentoPicks } from './ScentoPicks';
+import { ScentoText } from './ScentoText';
 
 type Load<T> = { status: 'idle' } | { status: 'loading' } | { status: 'error'; message: string } | { status: 'ready'; data: T };
 
@@ -60,9 +61,7 @@ function OccasionEdit() {
       {state.status === 'error' && <p className="muted small">{state.message}</p>}
       {state.status === 'ready' && (
         <>
-          <blockquote className="scento__lede" lang="en">
-            “{state.data.lede}”
-          </blockquote>
+          <ScentoText quote className="scento__lede" text={state.data.lede} />
           <ScentoPicks items={state.data.detail.edit} context={`seleção para ${label}`} />
           <ScentoCredit page={state.data.scento_page} />
         </>
@@ -167,9 +166,7 @@ function WardrobeBuilder() {
           {state.status === 'error' && <p className="muted small">{state.message}</p>}
           {state.status === 'ready' && (
             <>
-              <blockquote className="scento__lede" lang="en">
-                “{state.data.folio.lede}”
-              </blockquote>
+              <ScentoText quote className="scento__lede" text={state.data.folio.lede} />
               <ScentoPicks items={state.data.folio.detail.wardrobe} context="guarda-roupa montado a partir dos seus favoritos" />
               {state.data.missing.length > 0 && (
                 <p className="muted small">

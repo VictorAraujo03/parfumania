@@ -301,6 +301,23 @@ export const NOTE_PT: Record<string, string> = {
   'iso e super': 'Iso E Super',
   'leather notes': 'Notas de couro',
   'apple tree': 'Macieira',
+  // Notas frequentes nas frases da Scento
+  'blonde woods': 'Madeiras claras',
+  'salty vanilla': 'Baunilha salgada',
+  dates: 'Tâmaras',
+  linen: 'Linho',
+  'oolong tea': 'Chá oolong',
+  lavandin: 'Lavandin',
+  'blackcurrant leaf': 'Folha de cassis',
+  spice: 'Especiarias',
+  'cold spices': 'Especiarias frias',
+  smoke: 'Fumaça',
+  georgywood: 'Georgywood',
+  calone: 'Calone',
+  cetalox: 'Cetalox',
+  oakwood: 'Carvalho',
+  tulip: 'Tulipa',
+  guava: 'Goiaba',
 };
 
 export const ACCORD_PT: Record<string, string> = {

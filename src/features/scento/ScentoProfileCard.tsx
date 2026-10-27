@@ -16,6 +16,7 @@ import {
 import { scentoFamily, scentoHour, scentoNote, scentoSeason, scentoWord } from '../../services/scento/labels';
 import type { Perfume } from '../../types';
 import { ScentoCredit, ScentoPicks } from './ScentoPicks';
+import { ScentoText } from './ScentoText';
 
 type State =
   | { status: 'loading' }
@@ -201,9 +202,7 @@ export function ScentoProfileCard({ perfume }: { perfume: Perfume }) {
           ) : null}
         </div>
 
-        <blockquote className="scento__lede" lang="en">
-          “{state.portrait.lede}”
-        </blockquote>
+        <ScentoText quote className="scento__lede" text={state.portrait.lede} />
 
         {!hasOwnNotes && pyramid && (
           <div className="scento__import">
@@ -269,7 +268,7 @@ export function ScentoProfileCard({ perfume }: { perfume: Perfume }) {
     <Card className="detail-grid__wide scento-card">
       <CardHeader
         title="Perfil Scento"
-        subtitle="Da base da Scento — descrições no original, em inglês."
+        subtitle="Da base da Scento — frases traduzidas do inglês."
         action={
           state.status === 'ready' ? (
             <a href={state.portrait.scento_page.url} target="_blank" rel="noopener noreferrer" className="link-subtle">
