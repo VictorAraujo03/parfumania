@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Ícone do app (fonte dos PNGs em public/). Fundo sem cantos: iOS e Android aplicam a máscara. -->
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="30%" r="70%">
+      <stop offset="0" stop-color="#c9a96e" stop-opacity="0.22" />
+      <stop offset="1" stop-color="#c9a96e" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c9a96e" stop-opacity="0.10" />
+      <stop offset="1" stop-color="#c9a96e" stop-opacity="0.03" />
+    </linearGradient>
+    <linearGradient id="liquid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d9b877" stop-opacity="0.55" />
+      <stop offset="1" stop-color="#9c7a3f" stop-opacity="0.35" />
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e2c48c" />
+      <stop offset="1" stop-color="#b48f4f" />
+    </linearGradient>
+    <clipPath id="inside">
+      <rect x="139" y="187" width="234" height="234" rx="46" />
+    </clipPath>
+  </defs>
+  <rect width="512" height="512" fill="#0d0c0b" />
+  <rect width="512" height="512" fill="url(#glow)" />
+  <g id="bottle">
+    <rect x="216" y="80" width="80" height="64" rx="12" fill="url(#gold)" />
+    <rect x="192" y="144" width="128" height="30" rx="8" fill="#8c7448" />
+    <rect x="128" y="176" width="256" height="256" rx="56" fill="url(#glass)" />
+    <path clip-path="url(#inside)" fill="url(#liquid)"
+      d="M120 312 q34 -16 68 0 t68 0 t68 0 t68 0 V440 H120 Z" />
+    <rect x="128" y="176" width="256" height="256" rx="56" fill="none" stroke="url(#gold)" stroke-width="22" />
+    <path d="M168 220 v60" stroke="#f3e2bd" stroke-opacity="0.35" stroke-width="12" stroke-linecap="round" />
+  </g>
+</svg>

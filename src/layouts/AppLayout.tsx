@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { LogOut, MoreHorizontal, Plus } from 'lucide-react';
+import { BottleMark } from '../components/BottleMark';
 import { Modal } from '../components/Modal';
 import { useAuth } from '../hooks/useAuth';
 import { NAV_ITEMS } from './navItems';
@@ -9,12 +10,7 @@ function Logo() {
   return (
     <NavLink to="/" className="logo" aria-label="Parfumania — início">
       <span className="logo__mark" aria-hidden>
-        <svg viewBox="0 0 32 32" width="26" height="26">
-          <rect x="13" y="3" width="6" height="5" rx="1" fill="currentColor" />
-          <rect x="11.5" y="8" width="9" height="2.4" rx="0.8" fill="currentColor" opacity="0.6" />
-          <rect x="7" y="10.5" width="18" height="18" rx="4.5" fill="none" stroke="currentColor" strokeWidth="1.6" />
-          <path d="M11 22c3-2 7-2 10 0" stroke="currentColor" strokeWidth="1.3" fill="none" strokeLinecap="round" />
-        </svg>
+        <BottleMark />
       </span>
       <span className="logo__text">Parfumania</span>
     </NavLink>

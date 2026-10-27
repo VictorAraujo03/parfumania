@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { ArrowLeft, MailCheck } from 'lucide-react';
+import { BottleMark } from '../components/BottleMark';
 import { Button } from '../components/Button';
 import { TextField } from '../components/fields';
 import { Notice } from '../components/ui';
@@ -12,12 +13,7 @@ const MIN_PASSWORD = 8;
 function BrandMark() {
   return (
     <div className="auth__brand">
-      <svg viewBox="0 0 32 32" width="34" height="34" aria-hidden>
-        <rect x="13" y="3" width="6" height="5" rx="1" fill="currentColor" />
-        <rect x="11.5" y="8" width="9" height="2.4" rx="0.8" fill="currentColor" opacity="0.6" />
-        <rect x="7" y="10.5" width="18" height="18" rx="4.5" fill="none" stroke="currentColor" strokeWidth="1.6" />
-        <path d="M11 22c3-2 7-2 10 0" stroke="currentColor" strokeWidth="1.3" fill="none" strokeLinecap="round" />
-      </svg>
+      <BottleMark size={34} />
       <span>Parfumania</span>
     </div>
   );
