@@ -2168,15 +2168,14 @@
     grid-column: 2;
   }
 
+  /* Opções quebram linha dentro do cartão, em tamanho compacto. */
   .moment-ask .chip-group {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    margin: 0 calc(var(--space-5) * -1);
-    padding: 0 var(--space-5) 2px;
-    scrollbar-width: none;
+    gap: 6px;
   }
 
   .moment-ask .chip {
-    flex: none;
+    min-height: 32px;
+    padding: 5px 12px;
+    font-size: 13px;
   }
 }

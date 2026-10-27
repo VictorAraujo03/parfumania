@@ -22,7 +22,6 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { Button } from '../../components/Button';
-import { Badge } from '../../components/ui';
 import { useAppData } from '../../hooks/useAppData';
 import { useToast } from '../../hooks/useToast';
 import { useWeather } from '../../hooks/useWeather';
@@ -131,11 +130,12 @@ export function WeatherWidget({ compact, title }: { compact?: boolean; title?: s
           </div>
         ) : null}
         {tip && <p className="weather__tip">{tip}</p>}
-        <div className="weather__actions">
-          {weather.manual ? <Badge tone="gold">Manual</Badge> : <Badge>Fonte: {s.provider}</Badge>}
-          {manualButton}
-          {!weather.manual && (
-            <Button size="sm" variant="ghost" iconOnly icon={RefreshCw} aria-label="Atualizar clima" onClick={weather.refresh} />
+        {/* Canto inferior direito: atualizar (ou editar, se o clima foi informado à mão). */}
+        <div className="weather__corner">
+          {weather.manual ? (
+            <Button size="sm" variant="ghost" iconOnly icon={PencilLine} aria-label="Editar clima informado" onClick={() => setManualOpen(true)} />
+          ) : (
+            <Button size="sm" variant="ghost" iconOnly icon={RefreshCw} aria-label={`Atualizar clima (fonte: ${s.provider})`} title={`Fonte: ${s.provider}`} onClick={weather.refresh} />
           )}
         </div>
       </>

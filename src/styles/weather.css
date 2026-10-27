@@ -21,6 +21,12 @@
   height: 100%;
 }
 
+.weather__corner {
+  display: flex;
+  justify-content: flex-end;
+  margin: auto calc(var(--space-2) * -1) calc(var(--space-2) * -1) 0;
+}
+
 .weather__title {
   display: flex;
   align-items: center;
