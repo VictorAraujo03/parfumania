@@ -18,21 +18,25 @@ function Cloud({ i, total }: { i: number; total: number }) {
   const top = 6 + rand(i, 1) * 46;
   const scale = 0.7 + rand(i, 2) * 0.7;
   const dur = 38 + rand(i, 3) * 30;
+  // A trilha ocupa a largura do cartão e anda com transform (fluido e sem
+  // falhas de pintura no Safari do iPhone); a nuvem vai dentro dela.
   return (
-    <svg
-      className="wx-cloud"
-      viewBox="0 0 120 60"
-      style={vars({
-        top: `${top}%`,
-        '--s': scale,
-        '--o': 0.55 + rand(i, 5) * 0.4,
+    <div
+      className="wx-cloud-track"
+      style={{
         animationDuration: `${dur}s`,
         // Atraso negativo: as nuvens já começam espalhadas pelo céu.
         animationDelay: `${-((i + rand(i, 4)) / total) * dur}s`,
-      })}
+      }}
     >
-      <path d="M26 52 a18 18 0 0 1 2-36 a24 24 0 0 1 44-6 a20 20 0 0 1 30 18 a14 14 0 0 1 -4 24 Z" />
-    </svg>
+      <svg
+        className="wx-cloud"
+        viewBox="0 0 120 60"
+        style={vars({ top: `${top}%`, '--s': scale, '--o': 0.55 + rand(i, 5) * 0.4 })}
+      >
+        <path d="M26 52 a18 18 0 0 1 2-36 a24 24 0 0 1 44-6 a20 20 0 0 1 30 18 a14 14 0 0 1 -4 24 Z" />
+      </svg>
+    </div>
   );
 }
 

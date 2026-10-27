@@ -78,6 +78,8 @@
   inset: 0;
   overflow: hidden;
   pointer-events: none;
+  border-radius: inherit;
+  transform: translateZ(0);
 }
 
 .wx-sky,
@@ -187,15 +189,20 @@
 }
 
 /* Nuvens */
+.wx-cloud-track {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+  animation: wx-drift linear infinite;
+}
 .wx-cloud {
   position: absolute;
   left: -160px;
   width: 150px;
   height: 75px;
   fill: rgba(255, 255, 255, var(--o, 0.8));
-  filter: blur(1.5px);
   transform: scale(var(--s, 1));
-  animation: wx-drift linear infinite;
+  transform-origin: left top;
 }
 .wx--rain .wx-cloud,
 .wx--drizzle .wx-cloud,
@@ -233,7 +240,6 @@
   height: calc(3px + var(--len, 0.5) * 4px);
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.9);
-  filter: blur(0.4px);
   animation: wx-snow linear infinite;
 }
 .wx-flash {
@@ -294,9 +300,10 @@
   0%, 100% { opacity: 0.25; }
   50% { opacity: 1; }
 }
+/* translateX(100%) = largura da trilha = largura do cartão. */
 @keyframes wx-drift {
-  from { left: -170px; }
-  to { left: calc(100% + 20px); }
+  from { transform: translateX(0); }
+  to { transform: translateX(calc(100% + 170px)); }
 }
 @keyframes wx-fall {
   from { transform: translate(0, 0) rotate(12deg); }
@@ -341,5 +348,8 @@
   }
   .wx-cloud {
     left: calc(var(--s, 1) * 40%);
+  }
+  .wx-cloud-track {
+    transform: none;
   }
 }
