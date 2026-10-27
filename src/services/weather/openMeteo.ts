@@ -79,6 +79,7 @@ export const openMeteoProvider: WeatherProvider = {
       humidity: data.current.relative_humidity_2m,
       precipitationProbability: precip,
       description: describeWeatherCode(data.current.weather_code),
+      weatherCode: data.current.weather_code,
       isDay: data.current.is_day === undefined ? undefined : data.current.is_day === 1,
       forecast: (data.daily?.time ?? []).map((date, i) => ({
         date,
@@ -86,6 +87,7 @@ export const openMeteoProvider: WeatherProvider = {
         maxC: data.daily?.temperature_2m_max?.[i],
         precipitationProbability: orUndef(data.daily?.precipitation_probability_max?.[i]),
         description: describeWeatherCode(data.daily?.weather_code?.[i]),
+        weatherCode: orUndef(data.daily?.weather_code?.[i]),
       })),
       provider: 'Open-Meteo',
       locationName,

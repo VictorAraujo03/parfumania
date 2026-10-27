@@ -13,6 +13,8 @@ export interface WeatherForecastDay {
   maxC?: number;
   precipitationProbability?: number;
   description?: string;
+  /** Código WMO da condição (céu limpo, chuva, neve…). */
+  weatherCode?: number;
 }
 
 export interface WeatherData {
@@ -21,6 +23,7 @@ export interface WeatherData {
   humidity?: number;
   precipitationProbability?: number;
   description?: string;
+  weatherCode?: number;
   isDay?: boolean;
   forecast: WeatherForecastDay[];
   provider: string;
@@ -35,6 +38,8 @@ export interface WeatherSnapshot {
   humidity?: number;
   precipitationProbability?: number;
   description?: string;
+  weatherCode?: number;
+  isDay?: boolean;
   source: 'api' | 'manual';
   provider?: string;
   locationName?: string;

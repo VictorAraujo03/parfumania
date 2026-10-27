@@ -9,6 +9,7 @@ import './styles/base.css';
 import './styles/components.css';
 import './styles/layout.css';
 import './styles/pages.css';
+import './styles/weather.css';
 
 // A fonte de dados (local ou Supabase) é escolhida em Root.tsx conforme o login.
 createRoot(document.getElementById('root')!).render(

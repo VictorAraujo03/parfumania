@@ -53,6 +53,7 @@ export function RecommendationsPage() {
       weather: weather.snapshot
         ? {
             temperatureC: weather.snapshot.temperatureC,
+            apparentTemperatureC: weather.snapshot.apparentTemperatureC,
             humidity: weather.snapshot.humidity,
             precipitationProbability: weather.snapshot.precipitationProbability,
           }
@@ -234,9 +235,8 @@ export function RecommendationsPage() {
         </div>
 
         <aside className="rec-layout__side">
-          <Card>
-            <CardHeader title="Clima agora" />
-            <WeatherWidget compact />
+          <Card className="card--weather">
+            <WeatherWidget compact title="Clima agora" />
           </Card>
           <Card>
             <CardHeader title="Período do dia" subtitle="Detectado pelo horário; altere se necessário." />

@@ -196,6 +196,8 @@ export function WeatherProvider({ children }: { children: ReactNode }) {
             humidity: data.humidity,
             precipitationProbability: data.precipitationProbability,
             description: data.description,
+            weatherCode: data.weatherCode,
+            isDay: data.isDay,
             source: 'api',
             provider: data.provider,
             locationName: data.locationName,
