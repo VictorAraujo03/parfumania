@@ -2,19 +2,34 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, BarChart3, Droplet, Heart, Library, Plus, Sparkles, Wand2 } from 'lucide-react';
 import { ButtonLink } from '../components/Button';
+import { ChipSingleSelect } from '../components/ChipGroup';
 import { PerfumeImage } from '../components/PerfumeImage';
 import { Card, CardHeader, EmptyState, StatTile } from '../components/ui';
 import { DemoBanner } from '../features/collection/DemoBanner';
 import { RecommendationCard } from '../features/recommendations/RecommendationCard';
+import { buildBriefing } from '../features/recommendations/briefing';
+import { sceneOf } from '../features/weather/scene';
+import { useLocalPref } from '../hooks/useLocalPref';
 import { countByPerfume, filterLogs, indexPerfumes, byWeekday } from '../features/statistics/stats';
 import { UsageDialog } from '../features/usage/UsageDialog';
 import { WeatherWidget } from '../features/weather/WeatherWidget';
 import { useAppData } from '../hooks/useAppData';
 import { useRecommendations } from '../hooks/useRecommendations';
 import { useWeather } from '../hooks/useWeather';
-import { PERIODS, labelOf } from '../data/options';
-import { addDays, formatLongDate, getDayPeriod, greeting, startOfWeek } from '../utils/date';
-import { pluralize } from '../utils/format';
+import { ENVIRONMENTS, OCCASIONS, PERIODS, labelOf } from '../data/options';
+import type { Environment, Occasion } from '../types';
+import { addDays, formatLongDate, getDayPeriod, greeting, startOfWeek, toDateKey } from '../utils/date';
+import { formatTemperature, pluralize } from '../utils/format';
+
+/** Ocasiões oferecidas no atalho do painel (as demais ficam na recomendação guiada). */
+const QUICK_OCCASIONS = OCCASIONS.filter((o) => ['work', 'daily', 'casual', 'date', 'party', 'home'].includes(o.value));
+
+/** Respostas rápidas do dia ("para onde você vai?"); valem só para a data salva. */
+interface MomentAnswers {
+  date: string;
+  occasion?: Occasion;
+  environment?: Environment;
+}
 
 export function DashboardPage() {
   const { perfumes, usageLogs, settings } = useAppData();
@@ -22,6 +37,10 @@ export function DashboardPage() {
   const [registerFor, setRegisterFor] = useState<string | null>(null);
   const now = new Date();
   const period = getDayPeriod(now);
+  const today = toDateKey(now);
+  const [savedMoment, setMoment] = useLocalPref<MomentAnswers>('moment', { date: today });
+  const moment = savedMoment.date === today ? savedMoment : { date: today };
+  const answer = (patch: Partial<MomentAnswers>) => setMoment({ ...moment, ...patch, date: today });
 
   const context = useMemo(
     () => ({
@@ -34,11 +53,33 @@ export function DashboardPage() {
           }
         : undefined,
       period,
+      occasion: moment.occasion,
+      environment: moment.environment,
     }),
-    [weather.snapshot, period],
+    [weather.snapshot, period, moment.occasion, moment.environment],
   );
   const { recommendations, insufficientData } = useRecommendations(context);
   const top = recommendations[0];
+  const scene = useMemo(
+    () => (weather.snapshot ? sceneOf(weather.snapshot, settings.climateThresholds) : undefined),
+    [weather.snapshot, settings.climateThresholds],
+  );
+  const briefing = useMemo(
+    () =>
+      top
+        ? buildBriefing(top, {
+            period,
+            temperatureC: weather.snapshot?.apparentTemperatureC ?? weather.snapshot?.temperatureC,
+            scene,
+            occasion: moment.occasion,
+            environment: moment.environment,
+            logs: usageLogs,
+            formatTemperature: (c) => formatTemperature(c, settings.temperatureUnit),
+          })
+        : undefined,
+    [top, period, weather.snapshot, scene, moment.occasion, moment.environment, usageLogs, settings.temperatureUnit],
+  );
+  const alternatives = recommendations.slice(1, 3).filter((r) => r.confidenceLevel !== 'low' && r.score > 0);
 
   const index = useMemo(() => indexPerfumes(perfumes), [perfumes]);
   const weekStart = startOfWeek(now);
@@ -76,6 +117,7 @@ export function DashboardPage() {
         <Card className="dash-rec">
           <CardHeader
             title="Recomendação do momento"
+            subtitle={briefing?.moment}
             action={
               <Link to="/recomendacoes" className="link-subtle">
                 Refinar <ArrowRight size={14} aria-hidden />
@@ -108,7 +150,51 @@ export function DashboardPage() {
               Complete os dados na coleção ou escolha manualmente.
             </EmptyState>
           ) : (
-            <RecommendationCard rec={top} featured onRegister={(r) => setRegisterFor(r.perfume.id)} />
+            <>
+              <RecommendationCard rec={top} featured briefing={briefing} onRegister={(r) => setRegisterFor(r.perfume.id)} />
+              {alternatives.length > 0 && (
+                <div className="moment-alts">
+                  <p className="briefing__title">Também combinam agora</p>
+                  <ul>
+                    {alternatives.map((a) => (
+                      <li key={a.perfume.id}>
+                        <Link to={`/colecao/${a.perfume.id}`} className="moment-alts__name">
+                          {a.perfume.name}
+                          <span>{a.perfume.brand}</span>
+                        </Link>
+                        <span className="moment-alts__why">{a.highlights[0] ?? a.caveats[0] ?? ''}</span>
+                        <span className="moment-alts__score">{a.score}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </>
+          )}
+          {active.length > 0 && (
+            <div className="moment-ask">
+              <div className="moment-ask__row">
+                <span className="moment-ask__label">Para onde você vai?</span>
+                <ChipSingleSelect
+                  options={QUICK_OCCASIONS}
+                  value={moment.occasion}
+                  onChange={(v) => answer({ occasion: v })}
+                  ariaLabel="Ocasião de hoje"
+                />
+              </div>
+              <div className="moment-ask__row">
+                <span className="moment-ask__label">Onde vai ficar?</span>
+                <ChipSingleSelect
+                  options={ENVIRONMENTS}
+                  value={moment.environment}
+                  onChange={(v) => answer({ environment: v })}
+                  ariaLabel="Ambiente de hoje"
+                />
+              </div>
+              <p className="moment-ask__hint">
+                Opcional — deixa a sugestão mais precisa e vale só para hoje. Toque de novo para desmarcar.
+              </p>
+            </div>
           )}
         </Card>
 

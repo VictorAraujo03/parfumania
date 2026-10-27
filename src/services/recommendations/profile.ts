@@ -74,6 +74,10 @@ const NOTE_WARMTH: [string, number][] = [
   ['flor de laranjeira', 0.1],
   ['melancia', -0.6],
   ['melao', -0.5],
+  // "hortelã-pimenta" é fresca; "pimenta" contém "menta": por isso vêm antes.
+  ['hortela', -1],
+  ['pimenta', 0.3],
+  ['menta', -1],
   ['bergamota', -0.9],
   ['limao', -1],
   ['lima', -0.9],
@@ -84,8 +88,6 @@ const NOTE_WARMTH: [string, number][] = [
   ['petitgrain', -0.7],
   ['yuzu', -0.9],
   ['cidra', -0.9],
-  ['menta', -1],
-  ['hortela', -1],
   ['pepino', -1],
   ['aquatic', -1],
   ['marinh', -1],
@@ -102,7 +104,6 @@ const NOTE_WARMTH: [string, number][] = [
   ['cravo', 0.6],
   ['canela', 0.8],
   ['cardamomo', 0.1],
-  ['pimenta', 0.3],
   ['fava tonka', 0.9],
   ['baunilha', 0.9],
   ['ambar', 0.9],
@@ -132,9 +133,12 @@ export interface OlfactoryProfile {
   drivers: string[];
 }
 
+/** O termo precisa começar uma palavra ("vermelha" não conta como "mel"). */
+const NOTE_PATTERNS = NOTE_WARMTH.map(([key, v]) => [new RegExp(`(^|[\\s'(-])${key}`), v] as const);
+
 function noteWarmth(note: string): number | undefined {
   const n = normalize(note);
-  for (const [key, v] of NOTE_WARMTH) if (n.includes(key)) return v;
+  for (const [re, v] of NOTE_PATTERNS) if (re.test(n)) return v;
   return undefined;
 }
 
