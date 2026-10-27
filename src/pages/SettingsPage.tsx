@@ -170,6 +170,16 @@ export function SettingsPage() {
 
       <Card>
         <CardHeader title="Motor de recomendação" subtitle="Pesos de cada critério (0–100) e faixas de temperatura. Detalhes em docs/RECOMENDACOES.md." />
+        <Row
+          label="Rodízio de perfumes"
+          hint="Tira alguns pontos de quem você usou hoje ou ontem e lembra dos que estão esquecidos há semanas. Desligue se prefere um perfume assinatura."
+        >
+          <label className="switch">
+            <input type="checkbox" checked={settings.varietyEnabled} onChange={(e) => void save({ varietyEnabled: e.target.checked })} />
+            <span className="switch__track" aria-hidden />
+            <span className="visually-hidden">Rodízio de perfumes</span>
+          </label>
+        </Row>
         <WeightsEditor />
       </Card>
 

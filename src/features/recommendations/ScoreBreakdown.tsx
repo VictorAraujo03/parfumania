@@ -1,4 +1,4 @@
-import { Check, CircleDashed, Minus, X, HelpCircle } from 'lucide-react';
+import { Check, CircleDashed, Minus, X, HelpCircle, RefreshCcw } from 'lucide-react';
 import type { CriterionStatus, Recommendation } from '../../services/recommendations/engine';
 import { percent } from '../../utils/format';
 
@@ -45,12 +45,30 @@ export function ScoreBreakdown({ rec }: { rec: Recommendation }) {
           );
         })}
       </ul>
+      {rec.adjustments.length > 0 && (
+        <ul className="breakdown__adjustments">
+          {rec.adjustments.map((a) => (
+            <li key={a.label} className={a.points < 0 ? 'is-negative' : 'is-positive'}>
+              <span className="breakdown__status">
+                <RefreshCcw size={14} aria-hidden />
+                {a.label}
+              </span>
+              <span className="breakdown__points">
+                {a.points > 0 ? '+' : ''}
+                {a.points} pts
+              </span>
+              <p className="breakdown__reasons">{a.reason}</p>
+            </li>
+          ))}
+        </ul>
+      )}
       <p className="breakdown__summary">
         {rec.pointsEvaluated > 0 ? (
           <>
-            Obteve {rec.pointsEarned.toFixed(1)} de {rec.pointsEvaluated.toFixed(0)} pontos avaliáveis →{' '}
-            <strong>{rec.score}/100</strong>. {CONFIDENCE_LABEL[rec.confidenceLevel]} ({percent(rec.confidence)} dos
-            critérios aplicáveis tinham dados).
+            Obteve {rec.pointsEarned.toFixed(1)} de {rec.pointsEvaluated.toFixed(0)} pontos avaliáveis
+            {rec.adjustments.length > 0 ? ` (${rec.baseScore}/100) e ajuste de rodízio` : ''} →{' '}
+            <strong>{rec.score}/100</strong>. {CONFIDENCE_LABEL[rec.confidenceLevel]} ({percent(rec.confidence)} de
+            certeza sobre os critérios aplicáveis).
           </>
         ) : (
           <>Nenhum critério pôde ser avaliado com os dados disponíveis.</>

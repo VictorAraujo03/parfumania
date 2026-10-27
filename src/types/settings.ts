@@ -29,6 +29,8 @@ export interface Settings {
   theme: ThemePreference;
   weights: RecommendationWeights;
   climateThresholds: ClimateThresholds;
+  /** Rodízio: penaliza perfumes usados nos últimos dias e lembra dos esquecidos. */
+  varietyEnabled: boolean;
   favoriteFamilies: OlfactoryFamily[];
   dislikedFamilies: OlfactoryFamily[];
   preferredIntensity?: IntensityPreference;

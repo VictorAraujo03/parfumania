@@ -474,6 +474,34 @@
   color: var(--text-muted);
 }
 
+.breakdown__adjustments {
+  margin-top: var(--space-3);
+}
+
+.breakdown__adjustments li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2px 8px;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.breakdown__adjustments .breakdown__reasons {
+  flex-basis: 100%;
+  margin-top: 0;
+}
+
+.breakdown__adjustments .is-positive svg {
+  color: var(--success);
+}
+
+.breakdown__adjustments .is-negative svg {
+  color: var(--warning, var(--gold));
+}
+
 .breakdown__summary {
   margin-top: var(--space-4);
   font-size: 13.5px;

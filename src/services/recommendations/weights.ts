@@ -7,28 +7,29 @@ export const CRITERIA: { key: CriterionKey; label: string; description: string }
   {
     key: 'climate',
     label: 'Clima',
-    description: 'Temperatura, umidade e chance de chuva comparadas aos climas que você marcou no perfume.',
+    description:
+      'Sensação térmica, umidade e chuva comparadas aos climas marcados, ao perfil fresco/quente dos acordes e notas e à força do perfume.',
   },
   {
     key: 'occasion',
     label: 'Ocasião',
-    description: 'Se a ocasião escolhida está entre as ocasiões indicadas para o perfume.',
+    description: 'Ocasiões marcadas (com crédito para ocasiões parecidas) e se a projeção combina com a ocasião.',
   },
   {
     key: 'environment',
     label: 'Ambiente',
-    description: 'Projeção (ou intensidade) informada versus ambiente fechado, aberto ou ambos.',
+    description: 'Projeção (ou intensidade) versus ambiente fechado, aberto ou ambos; ao ar livre, a fixação também conta.',
   },
   {
     key: 'period',
     label: 'Período',
-    description: 'Se o período do dia está entre os períodos de uso marcados.',
+    description: 'Períodos de uso marcados e o perfil olfativo (mais fresco de dia, mais envolvente à noite).',
   },
   {
     key: 'personal',
     label: 'Preferência pessoal',
     description:
-      'Famílias favoritas ou evitadas, avaliação pessoal, avaliações após uso, intensidade desejada e favoritos.',
+      'Famílias favoritas ou evitadas, avaliação pessoal, avaliações após uso (inclusive em situações parecidas), intensidade desejada e favoritos.',
   },
 ];
 

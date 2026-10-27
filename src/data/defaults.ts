@@ -26,6 +26,7 @@ export const DEFAULT_SETTINGS: Settings = {
   theme: 'dark',
   weights: DEFAULT_WEIGHTS,
   climateThresholds: DEFAULT_CLIMATE_THRESHOLDS,
+  varietyEnabled: true,
   favoriteFamilies: [],
   dislikedFamilies: [],
   preferredIntensity: undefined,

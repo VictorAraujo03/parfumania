@@ -15,6 +15,7 @@ export function useRecommendations(context: RecommendationContext): Recommendati
         dislikedFamilies: settings.dislikedFamilies,
         preferredIntensity: settings.preferredIntensity,
         usageLogs,
+        variety: settings.varietyEnabled,
         formatTemperature: (c) => formatTemperature(c, settings.temperatureUnit),
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
