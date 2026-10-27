@@ -1942,3 +1942,7 @@
   border-radius: 4px;
   background: var(--surface-3);
 }
+
+.weather__today {
+  color: var(--text);
+}

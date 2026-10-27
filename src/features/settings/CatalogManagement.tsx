@@ -4,6 +4,7 @@ import { Button } from '../../components/Button';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { Notice } from '../../components/ui';
 import { PARFUMO_PRESET, useCatalog } from '../../hooks/useCatalog';
+import { useAppData } from '../../hooks/useAppData';
 import { useToast } from '../../hooks/useToast';
 import { formatDateTime } from '../../utils/date';
 
@@ -11,13 +12,17 @@ import { formatDateTime } from '../../utils/date';
 export function CatalogManagement() {
   const { meta, busy, importFile, importFromUrl, clear } = useCatalog();
   const { notify } = useToast();
+  const { settings, updateSettings } = useAppData();
+  const isPreset = meta?.label === PARFUMO_PRESET.label;
   const fileRef = useRef<HTMLInputElement>(null);
   const [confirmDownload, setConfirmDownload] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
 
-  async function handle(promise: Promise<{ count: number; withNotes: number }>) {
+  async function handle(promise: Promise<{ count: number; withNotes: number }>, preset?: 'parfumo') {
     try {
       const m = await promise;
+      // Base pública: os outros aparelhos da conta baixam sozinhos. Arquivo próprio: só aqui.
+      if (settings.catalogPreset !== preset) await updateSettings({ catalogPreset: preset });
       notify(`Base importada: ${m.count.toLocaleString('pt-BR')} perfumes (${m.withNotes.toLocaleString('pt-BR')} com notas).`);
     } catch (err) {
       notify(err instanceof Error ? err.message : 'Falha ao importar a base.', 'error');
@@ -44,6 +49,19 @@ export function CatalogManagement() {
           Nenhuma base importada. Com uma base, o campo “Nome” do cadastro sugere perfumes e versões (EDT, EDP, Parfum,
           flankers) e preenche marca, ano, perfumistas, acordes e notas automaticamente.
         </p>
+      )}
+
+      {isPreset && (
+        <label className="checkbox">
+          <input
+            type="checkbox"
+            checked={settings.catalogPreset === 'parfumo'}
+            onChange={(e) => void updateSettings({ catalogPreset: e.target.checked ? 'parfumo' : undefined })}
+          />
+          <span>
+            Baixar automaticamente nos meus outros aparelhos ao entrar na conta (cerca de 13 MB em cada um)
+          </span>
+        </label>
       )}
 
       <div className="button-row">
@@ -86,7 +104,7 @@ export function CatalogManagement() {
         onCancel={() => setConfirmDownload(false)}
         onConfirm={() => {
           setConfirmDownload(false);
-          void handle(importFromUrl(PARFUMO_PRESET));
+          void handle(importFromUrl(PARFUMO_PRESET), 'parfumo');
         }}
       >
         <p>
@@ -102,6 +120,7 @@ export function CatalogManagement() {
         onCancel={() => setConfirmClear(false)}
         onConfirm={async () => {
           await clear();
+          if (settings.catalogPreset) await updateSettings({ catalogPreset: undefined });
           setConfirmClear(false);
           notify('Base removida. Seus perfumes cadastrados não foram alterados.');
         }}

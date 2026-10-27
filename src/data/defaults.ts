@@ -22,6 +22,7 @@ export const DEFAULT_SETTINGS: Settings = {
   temperatureUnit: 'C',
   city: undefined,
   weatherEnabled: true,
+  autoLocation: false,
   theme: 'dark',
   weights: DEFAULT_WEIGHTS,
   climateThresholds: DEFAULT_CLIMATE_THRESHOLDS,

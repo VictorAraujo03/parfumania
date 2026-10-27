@@ -21,7 +21,7 @@ export function WeatherWidget({ compact }: { compact?: boolean }) {
   async function locate() {
     setLocating(true);
     try {
-      await weather.useBrowserLocation();
+      await weather.enableAutoLocation();
     } catch (err) {
       notify(err instanceof Error ? err.message : 'Falha ao obter localização.', 'error');
     } finally {
@@ -68,9 +68,9 @@ export function WeatherWidget({ compact }: { compact?: boolean }) {
         </div>
         {!compact && weather.data?.forecast.length && s.source === 'api' ? (
           <div className="weather__forecast">
-            {weather.data.forecast.slice(1, 3).map((d, i) => (
-              <span key={d.date}>
-                {i === 0 ? 'Amanhã' : 'Depois'}: {formatTemperature(d.minC, unit)} – {formatTemperature(d.maxC, unit)}
+            {weather.data.forecast.slice(0, 3).map((d, i) => (
+              <span key={d.date} className={i === 0 ? 'weather__today' : undefined}>
+                {['Hoje', 'Amanhã', 'Depois'][i]}: {formatTemperature(d.minC, unit)} – {formatTemperature(d.maxC, unit)}
                 {d.precipitationProbability !== undefined && ` · ${d.precipitationProbability}% chuva`}
               </span>
             ))}
@@ -85,26 +85,34 @@ export function WeatherWidget({ compact }: { compact?: boolean }) {
         </div>
       </>
     );
-  } else if (weather.status === 'loading') {
-    content = <div className="weather__loading" aria-busy="true">Consultando o clima de {weather.locationLabel}…</div>;
+  } else if (weather.status === 'loading' || weather.geoState === 'locating') {
+    content = (
+      <div className="weather__loading" aria-busy="true">
+        {weather.geoState === 'locating' ? 'Detectando sua localização…' : `Consultando o clima de ${weather.locationLabel}…`}
+      </div>
+    );
   } else {
     const message =
-      weather.status === 'no_location'
-        ? 'Defina uma cidade ou use sua localização para ver o clima. Nada é consultado sem a sua ação.'
-        : weather.status === 'disabled'
-          ? 'A integração meteorológica está desativada.'
-          : `Clima indisponível: ${weather.error ?? 'erro desconhecido'}`;
+      weather.geoState === 'denied'
+        ? 'A permissão de localização está bloqueada neste navegador. Libere no ícone de cadeado ao lado do endereço do site ou defina uma cidade.'
+        : weather.status === 'no_location'
+          ? 'Use sua localização para ver o clima e receber a recomendação ideal para o dia. O app lembra sua escolha.'
+          : weather.status === 'disabled'
+            ? 'A integração meteorológica está desativada.'
+            : `Clima indisponível: ${weather.error ?? 'erro desconhecido'}`;
     content = (
       <div className="weather__empty">
         <CloudOff size={22} strokeWidth={1.4} aria-hidden />
-        <p>{message} Você pode informar as condições manualmente.</p>
+        <p>{message}</p>
         <div className="weather__actions">
+          {weather.status === 'no_location' && weather.geoState !== 'denied' && (
+            <Button size="sm" variant="primary" icon={LocateFixed} onClick={locate} disabled={locating}>
+              {locating ? 'Localizando…' : 'Usar minha localização'}
+            </Button>
+          )}
           {manualButton}
           {weather.status === 'no_location' && (
             <>
-              <Button size="sm" variant="ghost" icon={LocateFixed} onClick={locate} disabled={locating}>
-                {locating ? 'Localizando…' : 'Usar minha localização'}
-              </Button>
               <Link to="/configuracoes" className="btn btn--ghost btn--sm">
                 Definir cidade
               </Link>

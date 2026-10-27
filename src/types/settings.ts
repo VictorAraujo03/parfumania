@@ -24,6 +24,8 @@ export interface Settings {
   temperatureUnit: 'C' | 'F';
   city?: City;
   weatherEnabled: boolean;
+  /** Detectar a localização do navegador ao abrir o app (opt-in). Coordenadas nunca são salvas. */
+  autoLocation: boolean;
   theme: ThemePreference;
   weights: RecommendationWeights;
   climateThresholds: ClimateThresholds;
@@ -34,4 +36,6 @@ export interface Settings {
   /** Orçamento para futuras compras, em BRL. */
   budget?: number;
   demoBannerDismissed: boolean;
+  /** Base pública de perfumes a baixar automaticamente em cada aparelho da conta. */
+  catalogPreset?: 'parfumo';
 }

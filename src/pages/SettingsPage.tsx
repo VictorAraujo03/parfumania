@@ -106,7 +106,22 @@ export function SettingsPage() {
             <span className="visually-hidden">Consultar o clima automaticamente</span>
           </label>
         </Row>
-        <Row label="Cidade preferida" hint="Alternativa à localização do navegador, que só é pedida quando você clica em “Usar minha localização”.">
+        <Row
+          label="Detectar minha localização ao abrir"
+          hint="Usa a localização aproximada (~1 km) do aparelho só para consultar o clima e recomendar. As coordenadas não são salvas. O navegador pede permissão uma vez em cada aparelho."
+        >
+          <label className="switch">
+            <input
+              type="checkbox"
+              checked={settings.autoLocation && settings.weatherEnabled && WEATHER_INTEGRATION_ENABLED}
+              disabled={!settings.weatherEnabled || !WEATHER_INTEGRATION_ENABLED}
+              onChange={(e) => void save({ autoLocation: e.target.checked })}
+            />
+            <span className="switch__track" aria-hidden />
+            <span className="visually-hidden">Detectar minha localização ao abrir</span>
+          </label>
+        </Row>
+        <Row label="Cidade preferida" hint="Usada quando a localização do aparelho não está disponível.">
           <CitySearch disabled={!settings.weatherEnabled || !WEATHER_INTEGRATION_ENABLED} />
         </Row>
       </Card>

@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { App } from './App';
 import { MigrationPrompt } from './features/account/MigrationPrompt';
+import { CatalogAutoSync } from './features/settings/CatalogAutoSync';
 import { AppDataProvider } from './hooks/useAppData';
 import { useAuth } from './hooks/useAuth';
 import { WeatherProvider } from './hooks/useWeather';
@@ -17,6 +18,7 @@ function AppWithData({ dataSource, cloud }: { dataSource: DataSource; cloud: boo
     <AppDataProvider dataSource={dataSource}>
       <WeatherProvider>
         <App />
+        <CatalogAutoSync />
         {cloud && <MigrationPrompt />}
       </WeatherProvider>
     </AppDataProvider>

@@ -219,4 +219,5 @@ backups antigos.
 | Serviço | Uso | Obrigatório? |
 |---|---|---|
 | Open-Meteo (forecast + geocoding) | clima atual, previsão e busca de cidade | Não — há entrada manual |
+| BigDataCloud (reverse geocode, client) | nome da cidade a partir da localização do aparelho (coordenadas arredondadas ~1 km, só com a opção ativada) | Não — sem ele, aparece "Sua localização atual" |
 | Google Fonts | Cormorant Garamond e Inter | Não — há fontes de sistema como alternativa |

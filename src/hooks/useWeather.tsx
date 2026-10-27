@@ -1,9 +1,13 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { WEATHER_INTEGRATION_ENABLED, weatherProvider, type Coordinates } from '../services/weather';
+import { reverseGeocode } from '../services/weather/reverseGeocode';
 import type { WeatherData, WeatherSnapshot } from '../types';
 import { useAppData } from './useAppData';
 
 export type WeatherStatus = 'disabled' | 'no_location' | 'loading' | 'ready' | 'error';
+
+/** Estado da geolocalização do navegador. */
+export type GeoState = 'idle' | 'locating' | 'denied' | 'unavailable';
 
 interface WeatherValue {
   status: WeatherStatus;
@@ -15,8 +19,14 @@ interface WeatherValue {
   snapshot?: WeatherSnapshot;
   locationLabel?: string;
   usingBrowserLocation: boolean;
+  geoState: GeoState;
+  /** Preferência salva na conta: detectar a localização ao abrir o app. */
+  autoLocation: boolean;
   refresh(): void;
+  /** Pede a localização uma vez (permissão do navegador). */
   useBrowserLocation(): Promise<void>;
+  /** Liga a detecção automática (salva na conta) e já pede a localização. */
+  enableAutoLocation(): Promise<void>;
   setManual(snapshot: WeatherSnapshot | undefined): void;
 }
 
@@ -50,8 +60,10 @@ function writeSession(key: string, value: unknown) {
 }
 
 export function WeatherProvider({ children }: { children: ReactNode }) {
-  const { settings, status: dataStatus } = useAppData();
+  const { settings, status: dataStatus, updateSettings } = useAppData();
   const [browserLocation, setBrowserLocation] = useState<Location>();
+  const [geoState, setGeoState] = useState<GeoState>('idle');
+  const autoTried = useRef(false);
   const [data, setData] = useState<WeatherData>();
   const [status, setStatus] = useState<WeatherStatus>('loading');
   const [error, setError] = useState<string>();
@@ -115,35 +127,60 @@ export function WeatherProvider({ children }: { children: ReactNode }) {
     () =>
       new Promise<void>((resolve, reject) => {
         if (!('geolocation' in navigator)) {
+          setGeoState('unavailable');
           reject(new Error('Seu navegador não oferece geolocalização.'));
           return;
         }
+        setGeoState('locating');
         navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            // Mantida apenas em memória nesta sessão e arredondada (~1 km).
-            setBrowserLocation({
-              coords: {
-                latitude: Math.round(pos.coords.latitude * 100) / 100,
-                longitude: Math.round(pos.coords.longitude * 100) / 100,
-              },
-              name: 'Sua localização atual',
-              fromBrowser: true,
-            });
+          async (pos) => {
+            // Arredondada (~1 km) e mantida apenas em memória: nunca é salva.
+            const coords = {
+              latitude: Math.round(pos.coords.latitude * 100) / 100,
+              longitude: Math.round(pos.coords.longitude * 100) / 100,
+            };
+            const name = (await reverseGeocode(coords)) ?? 'Sua localização atual';
+            setBrowserLocation({ coords, name, fromBrowser: true });
+            setGeoState('idle');
             resolve();
           },
-          (err) =>
+          (err) => {
+            const denied = err.code === err.PERMISSION_DENIED;
+            setGeoState(denied ? 'denied' : 'unavailable');
             reject(
               new Error(
-                err.code === err.PERMISSION_DENIED
-                  ? 'Permissão de localização negada.'
+                denied
+                  ? 'Permissão de localização negada. Libere no ícone de cadeado ao lado do endereço do site.'
                   : 'Não foi possível obter sua localização.',
               ),
-            ),
+            );
+          },
           { maximumAge: 10 * 60 * 1000, timeout: 15000 },
         );
       }),
     [],
   );
+
+  const enableAutoLocation = useCallback(async () => {
+    if (!settings.autoLocation) await updateSettings({ autoLocation: true });
+    await useBrowserLocation();
+  }, [settings.autoLocation, updateSettings, useBrowserLocation]);
+
+  // Detecção automática ao abrir o app, se você ativou essa opção.
+  useEffect(() => {
+    if (dataStatus !== 'ready' || !settings.autoLocation || !enabled || browserLocation || autoTried.current) return;
+    autoTried.current = true;
+    const permissions = (navigator as Navigator & { permissions?: Permissions }).permissions;
+    const ask = () => useBrowserLocation().catch(() => undefined);
+    if (!permissions?.query) {
+      void ask();
+      return;
+    }
+    permissions
+      .query({ name: 'geolocation' as PermissionName })
+      .then((p) => (p.state === 'denied' ? setGeoState('denied') : void ask()))
+      .catch(() => void ask());
+  }, [dataStatus, settings.autoLocation, enabled, browserLocation, useBrowserLocation]);
 
   const setManual = useCallback((s: WeatherSnapshot | undefined) => {
     setManualState(s);
@@ -177,11 +214,14 @@ export function WeatherProvider({ children }: { children: ReactNode }) {
       snapshot: manual ?? apiSnapshot,
       locationLabel: location?.name,
       usingBrowserLocation: !!browserLocation,
+      geoState,
+      autoLocation: settings.autoLocation,
       refresh: () => setNonce((n) => n + 1),
       useBrowserLocation,
+      enableAutoLocation,
       setManual,
     }),
-    [status, data, error, manual, apiSnapshot, location, browserLocation, useBrowserLocation, setManual],
+    [status, data, error, manual, apiSnapshot, location, browserLocation, geoState, settings.autoLocation, useBrowserLocation, enableAutoLocation, setManual],
   );
 
   return <WeatherContext.Provider value={value}>{children}</WeatherContext.Provider>;
