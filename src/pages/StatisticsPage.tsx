@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { BarChart3, CalendarDays, Droplet, Layers, Moon, Sparkle } from 'lucide-react';
 import { Button } from '../components/Button';
 import { Card, CardHeader, EmptyState, PageHeader, StatTile, Tabs } from '../components/ui';
@@ -32,6 +32,9 @@ import { pluralize } from '../utils/format';
 
 type Tab = 'overview' | 'recap' | 'history';
 
+/** Atalhos do painel: ?aba=retrospectiva | historico e ?periodo=7d | 30d | 90d | 365d | all. */
+const TAB_PARAM: Record<string, Tab> = { geral: 'overview', retrospectiva: 'recap', historico: 'history' };
+
 function TopThree({ items, empty }: { items: PerfumeCount[]; empty: string }) {
   if (items.length === 0) return <p className="muted small">{empty}</p>;
   return (
@@ -50,7 +53,15 @@ function TopThree({ items, empty }: { items: PerfumeCount[]; empty: string }) {
 export function StatisticsPage() {
   const { perfumes, usageLogs } = useAppData();
   const [rangeKey, setRangeKey] = useLocalPref<StatsRangeKey>('statsRange', '30d');
-  const [tab, setTab] = useState<Tab>('overview');
+  const [params] = useSearchParams();
+  const tabParam = TAB_PARAM[params.get('aba') ?? ''];
+  const rangeParam = RANGE_OPTIONS.find((o) => o.value === params.get('periodo'))?.value;
+  const [tab, setTab] = useState<Tab>(tabParam ?? 'overview');
+  useEffect(() => {
+    if (tabParam) setTab(tabParam);
+    if (rangeParam) setRangeKey(rangeParam);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tabParam, rangeParam]);
   const [registerOpen, setRegisterOpen] = useState(false);
 
   const now = new Date();

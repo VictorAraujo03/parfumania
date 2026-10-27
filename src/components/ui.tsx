@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
-import type { LucideIcon } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ChevronRight, type LucideIcon } from 'lucide-react';
 
 export function PageHeader({
   eyebrow,
@@ -94,21 +95,32 @@ export function StatTile({
   value,
   detail,
   icon: Icon,
+  to,
 }: {
   label: string;
   value: ReactNode;
   detail?: ReactNode;
   icon?: LucideIcon;
+  /** Torna o bloco clicável, levando à lista correspondente. */
+  to?: string;
 }) {
-  return (
-    <div className="stat-tile">
+  const body = (
+    <>
       <div className="stat-tile__label">
         {Icon && <Icon size={15} aria-hidden />}
         {label}
+        {to && <ChevronRight size={15} className="stat-tile__go" aria-hidden />}
       </div>
       <div className="stat-tile__value">{value}</div>
       {detail && <div className="stat-tile__detail">{detail}</div>}
-    </div>
+    </>
+  );
+  return to ? (
+    <Link to={to} className="stat-tile stat-tile--link">
+      {body}
+    </Link>
+  ) : (
+    <div className="stat-tile">{body}</div>
   );
 }
 

@@ -28,6 +28,7 @@ export function DashboardPage() {
       weather: weather.snapshot
         ? {
             temperatureC: weather.snapshot.temperatureC,
+            apparentTemperatureC: weather.snapshot.apparentTemperatureC,
             humidity: weather.snapshot.humidity,
             precipitationProbability: weather.snapshot.precipitationProbability,
           }
@@ -111,17 +112,16 @@ export function DashboardPage() {
           )}
         </Card>
 
-        <Card className="dash-weather">
-          <CardHeader title="Clima" />
-          <WeatherWidget />
+        <Card className="dash-weather card--weather">
+          <WeatherWidget title="Clima" />
         </Card>
       </div>
 
       <div className="stat-row">
-        <StatTile icon={Library} label="Na coleção" value={active.length} detail={`${pluralize(perfumes.length, 'cadastrado', 'cadastrados')} no total`} />
-        <StatTile icon={Droplet} label="Usos nesta semana" value={weekLogs.length} detail={weekTop ? `Mais usado: ${weekTop.perfume?.name ?? '—'}` : 'Nenhum registro ainda'} />
-        <StatTile icon={Heart} label="Favoritos" value={favorites.length} />
-        <StatTile icon={BarChart3} label="Registros no total" value={usageLogs.length} />
+        <StatTile to="/colecao" icon={Library} label="Na coleção" value={active.length} detail={`${pluralize(perfumes.length, 'cadastrado', 'cadastrados')} no total`} />
+        <StatTile to="/estatisticas?aba=retrospectiva" icon={Droplet} label="Usos nesta semana" value={weekLogs.length} detail={weekTop ? `Mais usado: ${weekTop.perfume?.name ?? '—'}` : 'Nenhum registro ainda'} />
+        <StatTile to="/colecao?favoritos=1" icon={Heart} label="Favoritos" value={favorites.length} detail={favorites.length ? 'Ver seus favoritos' : 'Nenhum ainda'} />
+        <StatTile to="/estatisticas?aba=historico&periodo=all" icon={BarChart3} label="Registros no total" value={usageLogs.length} detail="Ver histórico" />
       </div>
 
       <div className="dash-grid dash-grid--even">

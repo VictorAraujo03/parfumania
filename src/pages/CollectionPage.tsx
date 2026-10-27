@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Heart, LayoutGrid, List, Plus, Search, SlidersHorizontal, X, Library } from 'lucide-react';
 import { Button, ButtonLink } from '../components/Button';
 import { InlineSelect } from '../components/fields';
@@ -22,7 +23,10 @@ import { pluralize } from '../utils/format';
 
 export function CollectionPage() {
   const { perfumes } = useAppData();
-  const [filters, setFilters] = useState<CollectionFilters>(EMPTY_FILTERS);
+  // ?favoritos=1 (atalho do painel) abre a coleção já filtrada.
+  const [params] = useSearchParams();
+  const favoritesParam = params.get('favoritos') === '1';
+  const [filters, setFilters] = useState<CollectionFilters>(() => ({ ...EMPTY_FILTERS, favoritesOnly: favoritesParam }));
   const [sort, setSort] = useLocalPref<CollectionSort>('collectionSort', 'name-asc');
   const [view, setView] = useLocalPref<'grid' | 'list'>('collectionView', 'grid');
   const [showFilters, setShowFilters] = useState(false);
@@ -30,6 +34,9 @@ export function CollectionPage() {
   const brands = useMemo(() => uniqueBrands(perfumes).map((b) => ({ value: b, label: b })), [perfumes]);
   const result = useMemo(() => sortPerfumes(applyFilters(perfumes, filters), sort), [perfumes, filters, sort]);
   const activeCount = countActiveFilters(filters);
+  useEffect(() => {
+    setFilters((f) => (f.favoritesOnly === favoritesParam ? f : { ...f, favoritesOnly: favoritesParam }));
+  }, [favoritesParam]);
   const set = <K extends keyof CollectionFilters>(k: K, v: CollectionFilters[K]) => setFilters((f) => ({ ...f, [k]: v }));
 
   return (
