@@ -221,3 +221,4 @@ backups antigos.
 | Open-Meteo (forecast + geocoding) | clima atual, previsão e busca de cidade | Não — há entrada manual |
 | BigDataCloud (reverse geocode, client) | nome da cidade a partir da localização do aparelho (coordenadas arredondadas ~1 km, só com a opção ativada) | Não — sem ele, aparece "Sua localização atual" |
 | Google Fonts | Cormorant Garamond e Inter | Não — há fontes de sistema como alternativa |
+| [Scento Perfume API](https://www.scento.com/developers) (grátis, sem chave) | "Perfil Scento" e "Parecidos com este" na página do perfume; "Sugestões Scento" em Explorar (por ocasião e guarda-roupa). Consultada só quando você abre essas telas; respostas guardadas por 7 dias no aparelho; sempre creditada e linkada, conforme os [termos](https://www.scento.com/terms-of-service#perfume-api) | Não — sem ela, essas seções mostram uma mensagem de indisponibilidade |

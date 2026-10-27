@@ -83,6 +83,8 @@ export interface Perfume {
   updatedAt: string;
   isDemo?: boolean;
   catalogId?: string;
+  /** Perfume correspondente na Scento Perfume API (slug), quando identificado. */
+  scentoId?: string;
   dataSource: DataSource;
 }
 

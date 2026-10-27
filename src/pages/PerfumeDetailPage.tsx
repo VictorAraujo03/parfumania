@@ -17,6 +17,7 @@ import {
   labelOf,
 } from '../data/options';
 import { NotesPyramid } from '../features/collection/NotesPyramid';
+import { ScentoProfileCard } from '../features/scento/ScentoProfileCard';
 import { UsageDialog } from '../features/usage/UsageDialog';
 import { UsageLogList } from '../features/usage/UsageLogList';
 import { useAppData, usePerfume } from '../hooks/useAppData';
@@ -207,6 +208,8 @@ export function PerfumeDetailPage() {
             <dd>{formatDate(new Date(p.createdAt))}</dd>
           </dl>
         </Card>
+
+        <ScentoProfileCard perfume={p} />
 
         {p.notes && (
           <Card className="detail-grid__wide">

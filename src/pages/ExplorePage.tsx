@@ -7,6 +7,7 @@ import { Badge, EmptyState, Notice, PageHeader, Tabs } from '../components/ui';
 import { CONCENTRATION_SHORT, CONCENTRATIONS, FAMILIES, OCCASIONS, labelOf } from '../data/options';
 import { CatalogDetailModal } from '../features/discovery/CatalogDetailModal';
 import { GapAnalysis } from '../features/discovery/GapAnalysis';
+import { ScentoDiscover } from '../features/scento/ScentoDiscover';
 import { useAppData } from '../hooks/useAppData';
 import { useLocalPref } from '../hooks/useLocalPref';
 import { useCatalog } from '../hooks/useCatalog';
@@ -17,7 +18,7 @@ import { perfumeKey } from '../utils/text';
 
 export function ExplorePage() {
   const { perfumes } = useAppData();
-  const [tab, setTab] = useLocalPref<'catalog' | 'gaps'>('exploreTab', 'catalog');
+  const [tab, setTab] = useLocalPref<'catalog' | 'scento' | 'gaps'>('exploreTab', 'catalog');
   const [text, setText] = useState('');
   const [family, setFamily] = useState<OlfactoryFamily | ''>('');
   const [concentration, setConcentration] = useState<Concentration | ''>('');
@@ -62,6 +63,7 @@ export function ExplorePage() {
         onChange={setTab}
         tabs={[
           { value: 'catalog', label: 'Catálogo' },
+          { value: 'scento', label: 'Sugestões Scento' },
           { value: 'gaps', label: 'Expandir a coleção' },
         ]}
       />
@@ -141,6 +143,8 @@ export function ExplorePage() {
             </div>
           )}
         </>
+      ) : tab === 'scento' ? (
+        <ScentoDiscover />
       ) : (
         <GapAnalysis onOpenEntry={setSelected} />
       )}
