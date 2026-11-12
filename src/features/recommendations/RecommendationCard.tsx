@@ -27,7 +27,7 @@ export function RecommendationCard({ rec, rank, featured, briefing, onRegister }
     <article className={`rec-card ${featured ? 'rec-card--featured' : ''}`}>
       <div className="rec-card__top">
         <Link to={`/colecao/${p.id}`} className="rec-card__media">
-          <PerfumeImage imageId={p.imageId} name={p.name} brand={p.brand} family={p.family} />
+          <PerfumeImage imageId={p.imageId} imageUrl={p.imageUrl} name={p.name} brand={p.brand} family={p.family} />
         </Link>
         <div className="rec-card__info">
           {rank !== undefined && <span className="rec-card__rank">#{rank}</span>}

@@ -9,6 +9,7 @@ import { DataManagement } from '../features/settings/DataManagement';
 import { WeightsEditor } from '../features/settings/WeightsEditor';
 import { useAppData } from '../hooks/useAppData';
 import { useToast } from '../hooks/useToast';
+import { useWeather, type LocationMode } from '../hooks/useWeather';
 import { WEATHER_INTEGRATION_ENABLED } from '../services/weather';
 import type { ThemePreference } from '../types';
 
@@ -16,6 +17,12 @@ const THEMES: { value: ThemePreference; label: string }[] = [
   { value: 'dark', label: 'Escuro' },
   { value: 'light', label: 'Claro' },
   { value: 'system', label: 'Sistema' },
+];
+
+const LOCATION_MODES: { value: LocationMode; label: string }[] = [
+  { value: 'always', label: 'Permitir sempre' },
+  { value: 'ask', label: 'Perguntar sempre' },
+  { value: 'never', label: 'Não permitir' },
 ];
 
 function Row({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
@@ -53,6 +60,7 @@ function CommitInput({
 export function SettingsPage() {
   const { settings, updateSettings } = useAppData();
   const { notify } = useToast();
+  const weather = useWeather();
   const save = async (patch: Parameters<typeof updateSettings>[0], message = 'Configuração salva.') => {
     await updateSettings(patch);
     notify(message);
@@ -107,19 +115,22 @@ export function SettingsPage() {
           </label>
         </Row>
         <Row
-          label="Detectar minha localização ao abrir"
-          hint="Usa a localização aproximada (~1 km) do aparelho só para consultar o clima e recomendar. As coordenadas não são salvas. O navegador pede permissão uma vez em cada aparelho."
+          label="Usar minha localização"
+          hint="Vale para este aparelho. Usamos só a posição aproximada (~1 km) para o clima e a recomendação do dia. “Permitir sempre” guarda essa posição aqui por até 3 horas, para não perguntar a cada abertura. Se o iPhone ainda pedir: Ajustes › Privacidade e Segurança › Serviços de Localização › Sites do Safari › “Durante o Uso”."
         >
-          <label className="switch">
-            <input
-              type="checkbox"
-              checked={settings.autoLocation && settings.weatherEnabled && WEATHER_INTEGRATION_ENABLED}
-              disabled={!settings.weatherEnabled || !WEATHER_INTEGRATION_ENABLED}
-              onChange={(e) => void save({ autoLocation: e.target.checked })}
-            />
-            <span className="switch__track" aria-hidden />
-            <span className="visually-hidden">Detectar minha localização ao abrir</span>
-          </label>
+          <ChipSingleSelect
+            options={LOCATION_MODES}
+            value={weather.locationMode}
+            allowClear={false}
+            ariaLabel="Usar minha localização"
+            onChange={(v) => {
+              if (!v || !settings.weatherEnabled || !WEATHER_INTEGRATION_ENABLED) return;
+              weather
+                .setLocationMode(v)
+                .then(() => notify('Preferência de localização salva neste aparelho.'))
+                .catch((err: Error) => notify(err.message, 'error'));
+            }}
+          />
         </Row>
         <Row label="Cidade preferida" hint="Usada quando a localização do aparelho não está disponível.">
           <CitySearch disabled={!settings.weatherEnabled || !WEATHER_INTEGRATION_ENABLED} />

@@ -6,6 +6,8 @@ import { ChipSingleSelect } from '../components/ChipGroup';
 import { PerfumeImage } from '../components/PerfumeImage';
 import { Card, CardHeader, EmptyState, StatTile } from '../components/ui';
 import { DemoBanner } from '../features/collection/DemoBanner';
+import { FavoriteSuggestionCard } from '../features/statistics/FavoriteSuggestionCard';
+import { GapTeaser } from '../features/discovery/GapTeaser';
 import { RecommendationCard } from '../features/recommendations/RecommendationCard';
 import { buildBriefing } from '../features/recommendations/briefing';
 import { sceneOf } from '../features/weather/scene';
@@ -16,13 +18,19 @@ import { WeatherWidget } from '../features/weather/WeatherWidget';
 import { useAppData } from '../hooks/useAppData';
 import { useRecommendations } from '../hooks/useRecommendations';
 import { useWeather } from '../hooks/useWeather';
-import { ENVIRONMENTS, OCCASIONS, PERIODS, labelOf } from '../data/options';
+import { ENVIRONMENTS, PERIODS, labelOf } from '../data/options';
 import type { Environment, Occasion } from '../types';
 import { addDays, formatLongDate, getDayPeriod, greeting, startOfWeek, toDateKey } from '../utils/date';
 import { formatTemperature, pluralize } from '../utils/format';
 
 /** Ocasiões oferecidas no atalho do painel (as demais ficam na recomendação guiada). */
-const QUICK_OCCASIONS = OCCASIONS.filter((o) => ['work', 'daily', 'casual', 'date', 'party', 'home'].includes(o.value));
+const QUICK_OCCASIONS: { value: Occasion; label: string }[] = [
+  { value: 'work', label: 'Trabalhar' },
+  { value: 'sport', label: 'Treinar' },
+  { value: 'casual', label: 'Passear' },
+  { value: 'date', label: 'Encontro' },
+  { value: 'party', label: 'Festa' },
+];
 
 /** Respostas rápidas do dia ("para onde você vai?"); valem só para a data salva. */
 interface MomentAnswers {
@@ -112,6 +120,7 @@ export function DashboardPage() {
       </header>
 
       <DemoBanner />
+      <FavoriteSuggestionCard />
 
       <div className="dash-grid">
         <Card className="dash-rec">
@@ -203,6 +212,8 @@ export function DashboardPage() {
         </Card>
       </div>
 
+      <GapTeaser />
+
       <div className="stat-row">
         <StatTile to="/colecao" icon={Library} label="Na coleção" value={active.length} detail={`${pluralize(perfumes.length, 'cadastrado', 'cadastrados')} no total`} />
         <StatTile to="/estatisticas?aba=retrospectiva" icon={Droplet} label="Usos nesta semana" value={weekLogs.length} detail={weekTop ? `Mais usado: ${weekTop.perfume?.name ?? '—'}` : 'Nenhum registro ainda'} />
@@ -274,7 +285,7 @@ export function DashboardPage() {
           <div className="fav-strip">
             {favorites.map((p) => (
               <Link key={p.id} to={`/colecao/${p.id}`} className="fav-strip__item">
-                <PerfumeImage imageId={p.imageId} name={p.name} brand={p.brand} family={p.family} />
+                <PerfumeImage imageId={p.imageId} imageUrl={p.imageUrl} name={p.name} brand={p.brand} family={p.family} />
                 <span className="fav-strip__name">{p.name}</span>
                 <span className="fav-strip__brand">{p.brand}</span>
               </Link>

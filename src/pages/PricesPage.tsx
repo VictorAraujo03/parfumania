@@ -2,12 +2,13 @@ import { useMemo, useState } from 'react';
 import { ExternalLink, Pencil, PlugZap, Plus, Search, Tag, Trash2 } from 'lucide-react';
 import { Button } from '../components/Button';
 import { ConfirmDialog } from '../components/ConfirmDialog';
-import { Badge, Card, EmptyState, Notice, PageHeader } from '../components/ui';
+import { Badge, Card, CardHeader, EmptyState, Notice, PageHeader } from '../components/ui';
 import { OfferForm } from '../features/prices/OfferForm';
 import { groupOffers, offerTotal, pricePerMl, type OfferSort } from '../features/prices/offers';
 import { useAppData } from '../hooks/useAppData';
 import { useToast } from '../hooks/useToast';
-import { hasActivePriceIntegration } from '../services/prices/priceProviders';
+import { STORE_PRICES_AVAILABLE } from '../services/prices/storePrices';
+import { PriceCompareDialog, type PriceTarget } from '../features/prices/PriceCompareDialog';
 import type { PriceOffer } from '../types';
 import { formatDateTime } from '../utils/date';
 import { formatCurrency } from '../utils/format';
@@ -28,6 +29,8 @@ export function PricesPage() {
   const [deleting, setDeleting] = useState<PriceOffer>();
   const [sort, setSort] = useState<OfferSort>('total');
   const [text, setText] = useState('');
+  const [storeQuery, setStoreQuery] = useState('');
+  const [storeTarget, setStoreTarget] = useState<PriceTarget>();
 
   const groups = useMemo(() => {
     const t = normalize(text);
@@ -50,7 +53,7 @@ export function PricesPage() {
       <PageHeader
         eyebrow="Preços"
         title="Comparação de ofertas"
-        description="Registre preços que você consultou e compare apenas produtos equivalentes."
+        description="Busque nas lojas, salve as ofertas e compare apenas produtos equivalentes."
         actions={
           <Button variant="primary" icon={Plus} onClick={() => { setEditing(undefined); setFormOpen(true); }}>
             Registrar oferta
@@ -58,13 +61,45 @@ export function PricesPage() {
         }
       />
 
-      {!hasActivePriceIntegration() && (
+      {STORE_PRICES_AVAILABLE ? (
+        <Card className="store-search">
+          <CardHeader
+            title="Buscar preço nas lojas"
+            subtitle="Sephora, Beleza na Web, Época, Amazon, Mercado Livre e outras — via Google Shopping, sem sair do app."
+          />
+          <form
+            className="store-search__form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const q = storeQuery.trim();
+              if (q.length < 3) return;
+              // "Dior Sauvage 100 ml" → nome "Dior Sauvage" + volume 100 (filtra ofertas de outros tamanhos).
+              const ml = /(\d{2,3})\s?ml\b/i.exec(q);
+              setStoreTarget({ name: q.replace(/(\d{2,3})\s?ml\b/i, '').trim(), volumeMl: ml ? Number(ml[1]) : undefined });
+            }}
+          >
+            <label className="search">
+              <Search size={17} aria-hidden />
+              <input
+                type="search"
+                value={storeQuery}
+                onChange={(e) => setStoreQuery(e.target.value)}
+                placeholder="Ex.: Dior Sauvage 100 ml"
+                aria-label="Perfume para buscar nas lojas"
+              />
+            </label>
+            <Button type="submit" variant="primary" icon={Tag}>
+              Comparar preços
+            </Button>
+          </form>
+        </Card>
+      ) : (
         <Notice tone="warning" icon={PlugZap}>
-          <strong>Comparação automática ainda não disponível.</strong> Nenhuma integração com lojas, afiliados ou
-          fornecedores está ativa e não há coleta automática de preços. Todas as ofertas abaixo foram{' '}
-          <strong>digitadas por você</strong>.
+          <strong>Busca nas lojas indisponível no modo local.</strong> Entre com sua conta para comparar preços das
+          lojas. As ofertas abaixo foram <strong>digitadas por você</strong>.
         </Notice>
       )}
+      <PriceCompareDialog target={storeTarget} onClose={() => setStoreTarget(undefined)} />
 
       {offers.length === 0 ? (
         <EmptyState
@@ -137,7 +172,7 @@ export function PricesPage() {
                                   {o.store}
                                   {best && <Badge tone="gold">Menor total</Badge>}
                                 </span>
-                                <span className="muted small">Origem: {o.source === 'manual' ? 'registro manual' : o.source}</span>
+                                <span className="muted small">Origem: {o.source === 'manual' ? 'registro manual' : o.source === 'google-shopping' ? 'Google Shopping (busca no app)' : o.source}</span>
                               </td>
                               <td className="num">{formatCurrency(o.price)}</td>
                               <td className="num">{o.shipping === undefined ? <span className="muted">?</span> : o.shipping === 0 ? 'Grátis' : formatCurrency(o.shipping)}</td>

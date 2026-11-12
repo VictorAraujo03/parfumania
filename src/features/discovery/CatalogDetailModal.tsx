@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Check, Plus, Star } from 'lucide-react';
 import { Button } from '../../components/Button';
+import { PriceButton } from '../prices/PriceButton';
 import { Modal } from '../../components/Modal';
 import { Badge, Notice } from '../../components/ui';
 import { CONCENTRATIONS, FAMILIES, OCCASIONS, labelOf } from '../../data/options';
@@ -36,6 +37,7 @@ export function CatalogDetailModal({
           </Link>
         ) : (
           <>
+            <PriceButton target={{ name: entry.name, brand: entry.brand }} />
             <Button variant="ghost" icon={Star} onClick={() => add('wishlist')}>
               Lista de desejos
             </Button>
