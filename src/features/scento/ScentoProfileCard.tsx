@@ -16,6 +16,7 @@ import {
 import { scentoFamily, scentoHour, scentoNote, scentoSeason, scentoWord } from '../../services/scento/labels';
 import type { Perfume } from '../../types';
 import { ScentoCredit, ScentoPicks } from './ScentoPicks';
+import { NoteChip } from '../notes/NoteSheet';
 import { ScentoText } from './ScentoText';
 
 type State =
@@ -194,9 +195,7 @@ export function ScentoProfileCard({ perfume }: { perfume: Perfume }) {
           {d.signature_materials?.length ? (
             <Fact label="Ingredientes de assinatura">
               {d.signature_materials.map((m) => (
-                <span key={m} className="chip-static chip-static--gold">
-                  {scentoNote(m)}
-                </span>
+                <NoteChip key={m} note={scentoNote(m)} className="chip-static chip-static--gold" />
               ))}
             </Fact>
           ) : null}

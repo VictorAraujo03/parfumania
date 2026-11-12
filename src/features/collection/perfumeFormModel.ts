@@ -42,6 +42,8 @@ export interface PerfumeFormState {
   favorite: boolean;
   /** Entrada do catálogo usada para preencher o formulário, se houver. */
   catalogId?: string;
+  /** Nota da comunidade da base de origem (somente leitura no formulário). */
+  communityRating?: Perfume['communityRating'];
 }
 
 export type FormErrors = Partial<Record<keyof PerfumeFormState | 'image', string>>;
@@ -100,6 +102,7 @@ export function formFromPerfume(p: Perfume): PerfumeFormState {
     status: p.status,
     favorite: p.favorite,
     catalogId: p.catalogId,
+    communityRating: p.communityRating,
   };
 }
 
@@ -122,6 +125,7 @@ export function applyCatalogEntry(s: PerfumeFormState, e: CatalogEntry): Perfume
     heartNotes: e.heartNotes.join(', '),
     baseNotes: e.baseNotes.join(', '),
     catalogId: e.id,
+    communityRating: e.rating !== undefined ? { value: e.rating, votes: e.popularity, source: e.source.label } : undefined,
   };
 }
 
@@ -197,6 +201,7 @@ export function formToInput(s: PerfumeFormState, base?: Perfume): PerfumeInput {
     // Ao editar, o perfume deixa de ser apenas "demonstração" e passa a ser do usuário.
     isDemo: false,
     catalogId: s.catalogId ?? base?.catalogId,
+    communityRating: s.communityRating ?? base?.communityRating,
     dataSource: s.catalogId && s.catalogId !== base?.catalogId ? 'catalog' : base?.dataSource ?? 'manual',
   };
 }

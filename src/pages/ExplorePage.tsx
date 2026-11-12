@@ -139,6 +139,7 @@ export function ExplorePage() {
                             e.concentration && e.concentration !== 'other' ? CONCENTRATION_SHORT[e.concentration] : e.concentrationLabel,
                             e.year,
                             labelOf(FAMILIES, e.family) || null,
+                            e.rating !== undefined ? `★ ${e.rating.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}` : null,
                           ]
                             .filter(Boolean)
                             .join(' · ') || 'Dados incompletos'}

@@ -1,4 +1,5 @@
 import { FAMILIES, labelOf } from '../../data/options';
+import { PRIOR_MEAN, formatCommunityRating, weightedRating } from '../../services/catalog/rating';
 import { describeWarmth, olfactoryProfile } from '../../services/recommendations/profile';
 import type { ScentoOccasion } from '../../services/scento/scento';
 import type { CatalogEntry, ClimateThresholds, Occasion, Perfume, Settings, UsageLog } from '../../types';
@@ -285,10 +286,14 @@ export function analyzeCoverage(input: CoverageInput): CollectionReport {
         if (!prof || !slot.fits(prof.warmth)) return [];
         const shared = (e.accords ?? []).filter((a) => taste.has(normalize(a)));
         const affinity = shared.reduce((s, a) => s + (taste.get(normalize(a)) ?? 0), 0) / tasteMax;
-        let score = Math.log10((e.popularity ?? 0) + 10) + affinity * 0.8;
+        // Bem avaliados pela comunidade pesam mais que apenas populares; mal avaliados ficam de fora.
+        const wr = weightedRating(e.rating, e.popularity);
+        if (wr !== undefined && wr < 6.5) return [];
+        let score = Math.log10((e.popularity ?? 0) + 10) * 0.6 + affinity * 0.8 + (wr !== undefined ? (wr - PRIOR_MEAN) * 1.5 : 0);
         const reasons = [
           `Perfil ${describeWarmth(prof.warmth)}${prof.drivers.length ? ` (${prof.drivers.join(', ')})` : ''}, bom para ${slot.label}.`,
         ];
+        if (e.rating !== undefined) reasons.push(`Nota da comunidade: ${formatCommunityRating(e.rating, e.popularity)}.`);
         if (shared.length) reasons.push(`Tem acordes que você já curte: ${shared.slice(0, 3).map((a) => a.toLowerCase()).join(', ')}.`);
         if (e.family && favorites.has(e.family)) {
           score += 0.6;

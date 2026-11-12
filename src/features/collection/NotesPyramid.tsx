@@ -1,3 +1,5 @@
+import { NoteChip } from '../notes/NoteSheet';
+
 interface NotesPyramidProps {
   top: string[];
   heart: string[];
@@ -20,11 +22,7 @@ export function NotesPyramid({ top, heart, base }: NotesPyramidProps) {
           <dt>{label}</dt>
           <dd>
             {notes.length ? (
-              notes.map((n) => (
-                <span key={n} className="note-chip">
-                  {n}
-                </span>
-              ))
+              notes.map((n) => <NoteChip key={n} note={n} />)
             ) : (
               <span className="muted">—</span>
             )}

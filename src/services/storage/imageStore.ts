@@ -3,9 +3,9 @@ import type { ImageRepository } from './repositories';
 const DB_NAME = 'parfumania-images';
 const STORE = 'images';
 
-function openDb(): Promise<IDBDatabase> {
+function openDb(name: string): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, 1);
+    const req = indexedDB.open(name, 1);
     req.onupgradeneeded = () => {
       if (!req.result.objectStoreNames.contains(STORE)) req.result.createObjectStore(STORE);
     };
@@ -23,11 +23,14 @@ function run<T>(db: IDBDatabase, mode: IDBTransactionMode, fn: (s: IDBObjectStor
   });
 }
 
-/** Imagens ficam no IndexedDB, que suporta volumes muito maiores que o localStorage. */
-export function createIndexedDbImageRepository(): ImageRepository {
+/**
+ * Imagens ficam no IndexedDB, que suporta volumes muito maiores que o localStorage.
+ * `dbName` permite um banco separado (ex.: cache das fotos da nuvem).
+ */
+export function createIndexedDbImageRepository(dbName = DB_NAME): ImageRepository {
   if (typeof indexedDB === 'undefined') return createMemoryImageRepository();
   let dbPromise: Promise<IDBDatabase> | null = null;
-  const db = () => (dbPromise ??= openDb());
+  const db = () => (dbPromise ??= openDb(dbName));
 
   return {
     async get(id) {

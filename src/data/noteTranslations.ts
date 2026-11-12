@@ -396,3 +396,29 @@ export function translateAccord(accord: string): string {
   const t = accord.trim();
   return ACCORD_PT[t.toLowerCase()] ?? cap(t);
 }
+
+const fold = (s: string) =>
+  s
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .trim();
+
+let reverse: Map<string, string> | undefined;
+
+/**
+ * Nome em inglês de uma nota exibida em português ("Fava tonka" → "tonka bean"),
+ * para consultar bases internacionais. Entre vários originais, fica o mais curto
+ * (o mais genérico). Notas sem tradução voltam como estão.
+ */
+export function noteToEnglish(note: string): string {
+  if (!reverse) {
+    reverse = new Map();
+    for (const [en, pt] of Object.entries(NOTE_PT)) {
+      const k = fold(pt);
+      const prev = reverse.get(k);
+      if (!prev || en.length < prev.length) reverse.set(k, en);
+    }
+  }
+  return reverse.get(fold(note)) ?? note.trim();
+}

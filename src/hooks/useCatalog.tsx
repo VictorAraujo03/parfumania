@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { DEMO_CATALOG } from '../data/catalog';
 import { indexCatalog, searchCatalog, type CatalogQuery, type IndexedEntry } from '../services/catalog/catalogService';
 import { createImportedCatalogStore } from '../services/catalog/catalogStore';
-import { importCatalogCsv } from '../services/catalog/csvImport';
+import { CATALOG_FORMAT_VERSION, importCatalogCsv } from '../services/catalog/csvImport';
 import type { CatalogEntry, ImportedCatalogMeta } from '../types';
 import { decodeText } from '../utils/csv';
 
@@ -85,6 +85,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
       importedAt: new Date().toISOString(),
       count: parsed.length,
       withNotes: parsed.filter((e) => e.topNotes.length + e.heartNotes.length + e.baseNotes.length > 0).length,
+      formatVersion: CATALOG_FORMAT_VERSION,
     };
     await store.save(parsed, m);
     setImported(parsed);

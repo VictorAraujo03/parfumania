@@ -24,6 +24,7 @@ type Field =
   | 'accords'
   | 'perfumers'
   | 'popularity'
+  | 'rating'
   | 'url';
 
 /** Aliases normalizados (minúsculas, sem acento, só letras/números). */
@@ -40,6 +41,7 @@ const ALIASES: Record<Field, string[]> = {
   accords: ['mainaccords', 'accords', 'acordes', 'acordesprincipais'],
   perfumers: ['perfumers', 'perfumer', 'perfumistas', 'perfumista', 'nose'],
   popularity: ['ratingcount', 'votes', 'reviews', 'avaliacoes'],
+  rating: ['ratingvalue', 'rating', 'score', 'nota', 'notamedia', 'avaliacao'],
   url: ['url', 'link'],
 };
 
@@ -201,6 +203,9 @@ const FAMILY_TEXT: Record<string, OlfactoryFamily> = {
   powdery: 'powdery',
 };
 
+/** Versão do formato gerado pela importação (2 = inclui a nota da comunidade). */
+export const CATALOG_FORMAT_VERSION = 2;
+
 export interface ImportResult {
   entries: CatalogEntry[];
   skipped: number;
@@ -258,6 +263,10 @@ export function importCatalogCsv(text: string, sourceLabel: string): ImportResul
     const notes = (f: Field) => [...new Set(splitValues(get(row, f)).map(translateNote))];
     const url = get(row, 'url') || undefined;
     const popularity = Number(get(row, 'popularity').replace(/[^\d]/g, '')) || undefined;
+    // Nota média da comunidade (0–10), com vírgula ou ponto decimal.
+    const ratingText = get(row, 'rating');
+    const ratingNum = Number(ratingText.replace(',', '.'));
+    const rating = ratingText && Number.isFinite(ratingNum) && ratingNum > 0 && ratingNum <= 10 ? ratingNum : undefined;
 
     const idBase = url ?? `${brand}|${name}|${yearText}|${concText}`;
     let id = `imp-${hashString(idBase).toString(36)}`;
@@ -279,11 +288,17 @@ export function importCatalogCsv(text: string, sourceLabel: string): ImportResul
       perfumers: perfumers.length ? [...new Set(perfumers)] : undefined,
       year,
       popularity,
+      rating,
       url,
       suggestedOccasions: [],
       source,
       verification: 'unverified',
     });
+  }
+  // Bases com nota de 0 a 5: converte para a escala de 0 a 10 usada no app.
+  const rated = entries.filter((e) => e.rating !== undefined);
+  if (rated.length > 0 && rated.every((e) => (e.rating ?? 0) <= 5)) {
+    for (const e of rated) e.rating = Math.round(e.rating! * 2 * 100) / 100;
   }
   return { entries, skipped, header };
 }

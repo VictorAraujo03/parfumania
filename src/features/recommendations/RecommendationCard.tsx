@@ -6,6 +6,7 @@ import { PerfumeImage } from '../../components/PerfumeImage';
 import { Badge, DemoBadge, ScoreRing } from '../../components/ui';
 import { CONCENTRATION_SHORT } from '../../data/options';
 import type { Recommendation } from '../../services/recommendations/engine';
+import { NoteChip } from '../notes/NoteSheet';
 import type { Briefing } from './briefing';
 import { CONFIDENCE_LABEL, ScoreBreakdown } from './ScoreBreakdown';
 
@@ -96,9 +97,7 @@ export function RecommendationCard({ rec, rank, featured, briefing, onRegister }
             <div className="briefing__notes" aria-label="O que você vai sentir">
               <span className="briefing__title">O que você vai sentir</span>
               {briefing.notes.map((n) => (
-                <span key={n} className="briefing__note">
-                  {n}
-                </span>
+                <NoteChip key={n} note={n} className="briefing__note" />
               ))}
             </div>
           )}

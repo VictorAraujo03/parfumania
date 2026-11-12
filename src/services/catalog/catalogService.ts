@@ -1,3 +1,4 @@
+import { PRIOR_MEAN, weightedRating } from './rating';
 import type { CatalogEntry, Concentration, Occasion, OlfactoryFamily } from '../../types';
 import { normalize } from '../../utils/text';
 
@@ -98,6 +99,9 @@ export function searchCatalog(
     // Pós-barba, body spray etc. ficam abaixo dos perfumes propriamente ditos.
     if (item.entry.concentration === 'other') score -= 1.5;
     score += Math.log10((item.entry.popularity ?? 0) + 1) * 0.6;
+    // Bem avaliados sobem um pouco (nota ponderada pelos votos, em torno da média geral).
+    const wr = weightedRating(item.entry.rating, item.entry.popularity);
+    if (wr !== undefined) score += (wr - PRIOR_MEAN) * 0.5;
     if (item.entry.source.kind === 'demo') score -= 0.3;
     scored.push({ e: item.entry, score });
   }

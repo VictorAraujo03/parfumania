@@ -3,33 +3,47 @@ import { useAppData } from './useAppData';
 
 const cache = new Map<string, string>();
 
-/** Carrega uma imagem do repositório local, com cache em memória. */
-export function useImage(imageId: string | undefined): string | undefined {
+/**
+ * Carrega uma imagem do repositório (local ou nuvem), com cache em memória.
+ * `loading` é true enquanto a imagem ainda está chegando.
+ */
+export function useImageState(imageId: string | undefined): { url?: string; loading: boolean } {
   const { dataSource } = useAppData();
-  const [url, setUrl] = useState<string | undefined>(() => (imageId ? cache.get(imageId) : undefined));
+  const [state, setState] = useState<{ id?: string; url?: string; loading: boolean }>(() => {
+    const hit = imageId ? cache.get(imageId) : undefined;
+    return { id: imageId, url: hit, loading: !!imageId && !hit };
+  });
 
   useEffect(() => {
     if (!imageId) {
-      setUrl(undefined);
+      setState({ id: undefined, url: undefined, loading: false });
       return;
     }
     const hit = cache.get(imageId);
     if (hit) {
-      setUrl(hit);
+      setState({ id: imageId, url: hit, loading: false });
       return;
     }
     let cancelled = false;
+    setState({ id: imageId, url: undefined, loading: true });
     dataSource.images
       .get(imageId)
       .then((u) => {
         if (u) cache.set(imageId, u);
-        if (!cancelled) setUrl(u);
+        if (!cancelled) setState({ id: imageId, url: u, loading: false });
       })
-      .catch(() => !cancelled && setUrl(undefined));
+      .catch(() => !cancelled && setState({ id: imageId, url: undefined, loading: false }));
     return () => {
       cancelled = true;
     };
   }, [imageId, dataSource]);
 
-  return url;
+  // Enquanto o efeito não rodou para um id novo, já trata como carregando.
+  if (state.id !== imageId) return { url: imageId ? cache.get(imageId) : undefined, loading: !!imageId && !cache.has(imageId) };
+  return { url: state.url, loading: state.loading };
+}
+
+/** Atalho: só a URL. */
+export function useImage(imageId: string | undefined): string | undefined {
+  return useImageState(imageId).url;
 }
