@@ -4,6 +4,7 @@ import { AlertTriangle } from 'lucide-react';
 import { SplashScreen } from './components/SplashScreen';
 import { EmptyState } from './components/ui';
 import { useAppData } from './hooks/useAppData';
+import { NoteSheetProvider } from './features/notes/NoteSheet';
 import { AppLayout } from './layouts/AppLayout';
 import { CollectionPage } from './pages/CollectionPage';
 import { DashboardPage } from './pages/DashboardPage';
@@ -55,6 +56,7 @@ export function App() {
   // HashRouter funciona em qualquer hospedagem estática (Vercel, GitHub Pages) sem regras de rewrite.
   return (
     <HashRouter>
+      <NoteSheetProvider>
       <Suspense fallback={<PageFallback />}>
         <Routes>
           <Route element={<AppLayout />}>
@@ -72,6 +74,7 @@ export function App() {
           </Route>
         </Routes>
       </Suspense>
+      </NoteSheetProvider>
     </HashRouter>
   );
 }

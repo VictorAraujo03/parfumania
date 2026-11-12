@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { FAMILY_HUES } from '../data/options';
-import { useImage } from '../hooks/useImage';
+import { useImageState } from '../hooks/useImage';
 import type { OlfactoryFamily } from '../types';
 import { hashString } from '../utils/text';
 
@@ -18,25 +18,40 @@ interface PerfumeImageProps {
 
 const SHAPES = ['round', 'tall', 'square'] as const;
 
-/** Imagem local do perfume ou um placeholder elegante gerado em SVG. */
+/**
+ * Foto do perfume (própria, de loja ou oficial) ou um placeholder elegante em SVG.
+ * Enquanto a foto chega, mostra um brilho de carregamento; ao chegar, ela entra
+ * com um esmaecer suave (sem o placeholder "pular" para a foto).
+ */
 export function PerfumeImage({ imageId, src, imageUrl, name, brand, family, className = '' }: PerfumeImageProps) {
-  const stored = useImage(src ? undefined : imageId);
+  const { url: stored, loading } = useImageState(src ? undefined : imageId);
   const [broken, setBroken] = useState<string>();
+  const [loaded, setLoaded] = useState<string>();
   const remote = imageUrl && imageUrl !== broken ? imageUrl : undefined;
-  const url = src ?? stored ?? remote;
+  // Com foto própria ainda carregando, espera por ela em vez de mostrar a de loja primeiro.
+  const url = src ?? stored ?? (loading ? undefined : remote);
 
   if (url) {
+    const ready = loaded === url;
     return (
-      <div className={`perfume-image ${remote && url === remote ? 'perfume-image--remote' : ''} ${className}`}>
+      <div
+        className={`perfume-image ${remote && url === remote ? 'perfume-image--remote' : ''} ${ready ? 'is-loaded' : 'is-loading'} ${className}`}
+        aria-busy={!ready}
+      >
         <img
           src={url}
           alt={`Frasco de ${name}`}
           loading="lazy"
+          decoding="async"
           referrerPolicy="no-referrer"
-          onError={() => url === remote && setBroken(remote)}
+          onLoad={() => setLoaded(url)}
+          onError={() => (url === remote ? setBroken(remote) : setLoaded(url))}
         />
       </div>
     );
+  }
+  if (loading) {
+    return <div className={`perfume-image is-loading ${className}`} aria-busy="true" aria-label={`Carregando a foto de ${name}`} role="img" />;
   }
   return <BottlePlaceholder name={name} brand={brand} family={family} className={className} />;
 }

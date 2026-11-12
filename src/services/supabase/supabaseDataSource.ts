@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Perfume, PriceOffer, Settings, UsageLog } from '../../types';
+import { createIndexedDbImageRepository } from '../storage/imageStore';
 import { StorageError } from '../storage/keyValueStore';
 import { CURRENT_SCHEMA_VERSION, migrate } from '../storage/migrations';
 import {
@@ -149,9 +150,17 @@ function blobToDataUrl(blob: Blob): Promise<string> {
   });
 }
 
+/** Fotos já baixadas ficam guardadas neste aparelho: um id de imagem nunca muda de conteúdo. */
+const imageCache = createIndexedDbImageRepository('parfumania-image-cache');
+
+/** Esvazia as fotos guardadas no aparelho (ao sair da conta). */
+export const clearCloudImageCache = () => imageCache.clear().catch(() => undefined);
+
 function createRemoteImageRepository(client: SupabaseClient, userId: string): ImageRepository {
   const bucket = () => client.storage.from(BUCKET);
   const path = (id: string) => `${userId}/${id}`;
+  const cacheGet = (id: string) => imageCache.get(path(id)).catch(() => undefined);
+  const cachePut = (id: string, url: string) => imageCache.put(path(id), url).catch(() => undefined);
 
   async function listIds(): Promise<string[]> {
     const { data, error } = await bucket().list(userId, { limit: 1000 });
@@ -161,17 +170,23 @@ function createRemoteImageRepository(client: SupabaseClient, userId: string): Im
 
   return {
     async get(id) {
+      const cached = await cacheGet(id);
+      if (cached) return cached;
       const { data, error } = await bucket().download(path(id));
       if (error || !data) return undefined;
-      return blobToDataUrl(data);
+      const url = await blobToDataUrl(data);
+      void cachePut(id, url);
+      return url;
     },
     async put(id, dataUrl) {
       const blob = await (await fetch(dataUrl)).blob();
       const { error } = await bucket().upload(path(id), blob, { upsert: true, contentType: blob.type });
       if (error) throw friendlyError(error, 'enviar a imagem');
+      void cachePut(id, dataUrl);
     },
     async remove(id) {
       await bucket().remove([path(id)]);
+      await imageCache.remove(path(id)).catch(() => undefined);
     },
     async getAll() {
       const out: Record<string, string> = {};
@@ -184,6 +199,7 @@ function createRemoteImageRepository(client: SupabaseClient, userId: string): Im
     async clear() {
       const ids = await listIds();
       for (const part of chunks(ids, 100)) await bucket().remove(part.map(path));
+      for (const id of ids) await imageCache.remove(path(id)).catch(() => undefined);
     },
   };
 }

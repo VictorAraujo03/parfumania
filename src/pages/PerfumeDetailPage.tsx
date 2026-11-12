@@ -18,7 +18,9 @@ import {
 } from '../data/options';
 import { NotesPyramid } from '../features/collection/NotesPyramid';
 import { ScentoProfileCard } from '../features/scento/ScentoProfileCard';
+import { ScentVerdictCard } from '../features/scentverdict/ScentVerdictCard';
 import { PriceButton } from '../features/prices/PriceButton';
+import { formatCommunityRating } from '../services/catalog/rating';
 import { UsageDialog } from '../features/usage/UsageDialog';
 import { UsageLogList } from '../features/usage/UsageLogList';
 import { useAppData, usePerfume } from '../hooks/useAppData';
@@ -113,6 +115,11 @@ export function PerfumeDetailPage() {
             {concentration && <Badge>{concentration}</Badge>}
             {p.year && <Badge>{p.year}</Badge>}
             {p.family && <Badge>{labelOf(FAMILIES, p.family)}</Badge>}
+            {p.communityRating && (
+              <Badge tone="gold" title={`Nota média da comunidade em ${p.communityRating.source}`}>
+                Comunidade: {formatCommunityRating(p.communityRating.value, p.communityRating.votes)}
+              </Badge>
+            )}
             <Badge tone={p.status === 'owned' ? 'gold' : 'neutral'}>{labelOf(STATUSES, p.status)}</Badge>
             {p.isDemo && <DemoBadge label="Demonstração" />}
           </div>
@@ -212,6 +219,7 @@ export function PerfumeDetailPage() {
         </Card>
 
         <ScentoProfileCard perfume={p} />
+        <ScentVerdictCard perfume={p} />
 
         {p.notes && (
           <Card className="detail-grid__wide">

@@ -30,6 +30,8 @@ export interface CatalogEntry {
   familyFromAccord?: boolean;
   /** Indicador de popularidade na fonte (ex.: número de avaliações), usado só para ordenar buscas. */
   popularity?: number;
+  /** Nota média da comunidade na fonte, de 0 a 10 (ex.: Parfumo). Votos em `popularity`. */
+  rating?: number;
   url?: string;
   source: CatalogSource;
   verification: VerificationStatus;
@@ -42,4 +44,6 @@ export interface ImportedCatalogMeta {
   importedAt: string;
   count: number;
   withNotes: number;
+  /** Versão do formato da importação; versões antigas da base predefinida são baixadas de novo. */
+  formatVersion?: number;
 }

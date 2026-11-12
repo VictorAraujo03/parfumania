@@ -85,8 +85,12 @@ export interface Perfume {
   updatedAt: string;
   isDemo?: boolean;
   catalogId?: string;
+  /** Nota da comunidade na base de origem (0–10) e número de votos, copiada ao cadastrar pelo catálogo. */
+  communityRating?: { value: number; votes?: number; source: string };
   /** Perfume correspondente na Scento Perfume API (slug), quando identificado. */
   scentoId?: string;
+  /** Perfume correspondente no ScentVerdict (slug), quando identificado. */
+  scentVerdictId?: string;
   dataSource: DataSource;
 }
 

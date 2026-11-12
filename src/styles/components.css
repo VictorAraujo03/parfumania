@@ -1137,3 +1137,59 @@ input[type='range'] {
   font-size: 16px;
   font-weight: 400;
 }
+
+/* Carregamento da foto: brilho dourado passando + entrada suave da imagem. */
+.perfume-image.is-loading {
+  background: linear-gradient(160deg, var(--surface-2), var(--surface-3));
+}
+
+.perfume-image.is-loading::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 25%,
+    rgba(201, 169, 110, 0.16) 42%,
+    rgba(255, 240, 210, 0.26) 50%,
+    rgba(201, 169, 110, 0.16) 58%,
+    transparent 75%
+  );
+  background-size: 250% 100%;
+  animation: img-shimmer 1.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.perfume-image img {
+  transition: opacity 320ms var(--ease), transform 420ms var(--ease);
+}
+
+.perfume-image.is-loading img {
+  opacity: 0;
+  transform: scale(1.02);
+}
+
+.perfume-image.is-loaded img {
+  opacity: 1;
+  transform: none;
+}
+
+@keyframes img-shimmer {
+  from {
+    background-position: 120% 0;
+  }
+  to {
+    background-position: -120% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .perfume-image.is-loading::after {
+    animation: none;
+    background: rgba(201, 169, 110, 0.06);
+  }
+
+  .perfume-image img {
+    transition: none;
+  }
+}

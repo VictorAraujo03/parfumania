@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Check, Plus, Star } from 'lucide-react';
 import { Button } from '../../components/Button';
+import { formatCommunityRating } from '../../services/catalog/rating';
 import { PriceButton } from '../prices/PriceButton';
 import { Modal } from '../../components/Modal';
 import { Badge, Notice } from '../../components/ui';
@@ -54,6 +55,11 @@ export function CatalogDetailModal({
             <Badge>{entry.concentration === 'other' ? entry.concentrationLabel ?? 'Outra' : labelOf(CONCENTRATIONS, entry.concentration)}</Badge>
           )}
           {entry.year && <Badge>{entry.year}</Badge>}
+          {entry.rating !== undefined && (
+            <Badge tone="gold" title={`Nota média da comunidade em ${entry.source.label}`}>
+              <Star size={11} aria-hidden /> {formatCommunityRating(entry.rating, entry.popularity)}
+            </Badge>
+          )}
           {entry.family && (
             <Badge title={entry.familyFromAccord ? 'Sugerida a partir do acorde principal' : undefined}>
               {labelOf(FAMILIES, entry.family)}

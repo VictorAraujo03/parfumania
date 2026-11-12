@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { appRedirectUrl, supabase } from '../services/supabase/client';
+import { clearCloudImageCache } from '../services/supabase/supabaseDataSource';
 
 export type AuthStatus = 'unconfigured' | 'loading' | 'signedOut' | 'signedIn';
 
@@ -96,6 +97,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       async signOut() {
         await client().auth.signOut();
         setRecovering(false);
+        // As fotos da conta guardadas neste aparelho saem junto com a sessão.
+        await clearCloudImageCache();
       },
     };
   }, [status, session, recovering]);

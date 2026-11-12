@@ -171,7 +171,23 @@ export const scento = {
       loves: loves.slice(0, 6).join(','),
       size: Math.max(3, Math.min(5, size)),
     }),
+  /** Ficha de uma nota/matéria-prima (aceita apelidos, inclusive em português). */
+  material: (name: string) => get<ScentoMaterial>(`/materials/${encodeURIComponent(name.trim().toLowerCase())}`),
 };
+
+/** Resposta de /materials: encontrada (campos completos) ou não (found: false + sugestões). */
+export interface ScentoMaterial {
+  name?: string;
+  aliases?: string[];
+  natural_or_synthetic?: 'natural' | 'synthetic' | string | null;
+  smells_like?: string | null;
+  family?: string | null;
+  scento_family?: string | null;
+  pairs_well_with?: string[];
+  showcased_in?: { name: string; house: string; page: string; tier?: string }[];
+  found?: false;
+  suggestions?: string[];
+}
 
 /** Slug da página de um perfume (".../perfumes/sauvage-dior" → "sauvage-dior"). */
 export function slugFromPage(url: string): string | undefined {

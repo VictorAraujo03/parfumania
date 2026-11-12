@@ -1,5 +1,5 @@
 import { useRef, useState, type FormEvent, type ReactNode } from 'react';
-import { BookOpen, ImagePlus, Trash2, X } from 'lucide-react';
+import { BookOpen, ClipboardPaste, ImagePlus, Trash2, X } from 'lucide-react';
 import { Button } from '../../components/Button';
 import { ChipMultiSelect } from '../../components/ChipGroup';
 import { Field, SelectField, TextAreaField, TextField } from '../../components/fields';
@@ -21,6 +21,7 @@ import { prepareImage } from '../../utils/image';
 import { toDateKey } from '../../utils/date';
 import { useCatalog } from '../../hooks/useCatalog';
 import { CatalogAutocomplete } from './CatalogAutocomplete';
+import { PasteNotesDialog } from './PasteNotesDialog';
 import { applyCatalogEntry, validatePerfumeForm, type FormErrors, type PerfumeFormState } from './perfumeFormModel';
 
 interface PerfumeFormProps {
@@ -51,6 +52,7 @@ export function PerfumeForm({ initial, initialImageId, brands, submitLabel, noti
   const [image, setImage] = useState<ImageChange>({ kind: 'keep' });
   const [imageBusy, setImageBusy] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [pasteOpen, setPasteOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const storedImage = useImage(initialImageId);
   const { getById } = useCatalog();
@@ -196,6 +198,12 @@ export function PerfumeForm({ initial, initialImageId, brands, submitLabel, noti
           />
           <TextField label="Acordes principais" optional placeholder="Amadeirado, Especiado" {...text('accords')} />
         </div>
+        <div className="paste-notes__bar">
+          <Button type="button" size="sm" variant="secondary" icon={ClipboardPaste} onClick={() => setPasteOpen(true)}>
+            Colar notas de outro site
+          </Button>
+          <span className="field__hint">Copie a pirâmide da Fragrantica (ou outro site) e o app separa sozinho.</span>
+        </div>
         <div className="form-grid form-grid--3">
           <TextAreaField label="Notas de saída" optional rows={2} placeholder="Bergamota, pimenta" {...text('topNotes')} />
           <TextAreaField label="Notas de coração" optional rows={2} placeholder="Lavanda, gerânio" {...text('heartNotes')} />
@@ -292,6 +300,21 @@ export function PerfumeForm({ initial, initialImageId, brands, submitLabel, noti
           {saving ? 'Salvando…' : submitLabel}
         </Button>
       </div>
+      <PasteNotesDialog
+        open={pasteOpen}
+        name={state.name}
+        brand={state.brand}
+        onClose={() => setPasteOpen(false)}
+        onApply={(p) =>
+          setState((s) => ({
+            ...s,
+            topNotes: p.top.join(', ') || s.topNotes,
+            heartNotes: p.heart.join(', ') || s.heartNotes,
+            baseNotes: p.base.join(', ') || s.baseNotes,
+            accords: p.accords.join(', ') || s.accords,
+          }))
+        }
+      />
     </form>
   );
 }

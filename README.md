@@ -100,6 +100,21 @@ Function do Supabase; o app nunca a vê. Precisa do login (Supabase) configurado
 Sem esses passos, o app continua funcionando: o botão mostra que a busca ainda não
 foi ativada, e dá para registrar ofertas à mão em **Preços**.
 
+## ScentVerdict (opcional)
+
+O cartão **ScentVerdict** na página do perfume traz a foto oficial do frasco, uma
+avaliação curta, quanto tempo cada nota costuma durar na pele (estimativa pela
+matéria-prima) e perfumes **parecidos, só que mais frescos, mais intensos, que
+duram mais…**. O ScentVerdict é gratuito e não usa chave, mas não aceita chamadas
+diretas do navegador; por isso há uma função-ponte que repassa só essas consultas.
+
+1. Em **Edge Functions → Deploy a new function → Via Editor**, crie a função
+   `scentverdict` e cole o conteúdo de `supabase/functions/scentverdict/index.ts`.
+   Não precisa de segredo nem de tabela.
+2. Deixe "Verify JWT with legacy secret" **desligado** (a função já confere o login).
+
+As respostas ficam guardadas por 7 dias no aparelho.
+
 ## Publicação
 
 O app usa `HashRouter` (URLs como `/#/colecao`), então funciona em qualquer
@@ -159,6 +174,16 @@ o campo "Nome" do cadastro sugere perfumes e versões (EDT, EDP, Parfum, flanker
 ao escolher uma, preenche marca, concentração, ano, perfumistas, acordes, família
 sugerida e as notas de saída, coração e fundo. Também alimenta Explorar e a análise
 de lacunas.
+
+A base Parfumo traz também a **nota da comunidade** (0–10) e o número de votos.
+O app usa uma média ponderada pelos votos para priorizar perfumes bem avaliados
+(um 9,5 com 3 votos não passa à frente de um 8,2 com 5 mil). Quem já tinha
+baixado a base numa versão antiga recebe a nova automaticamente, uma vez.
+
+Sem a base, dá para usar **Colar notas de outro site** no cadastro: copie a
+pirâmide (ou a frase "Top notes are…") de uma página como a da Fragrantica e o
+app separa em saída, coração, fundo e acordes. O app não acessa esses sites:
+só lê o texto que você colou.
 
 | Opção | Como | Observações |
 |---|---|---|
@@ -244,5 +269,6 @@ backups antigos.
 | Open-Meteo (forecast + geocoding) | clima atual, previsão e busca de cidade | Não — há entrada manual |
 | BigDataCloud (reverse geocode, client) | nome da cidade a partir da localização do aparelho (coordenadas arredondadas ~1 km, só com a localização permitida; no modo "Permitir sempre" a posição aproximada fica guardada no aparelho por até 3 h) | Não — sem ele, aparece "Sua localização atual" |
 | Google Fonts | Cormorant Garamond e Inter | Não — há fontes de sistema como alternativa |
-| [Scento Perfume API](https://www.scento.com/developers) (grátis, sem chave) | "Perfil Scento" e "Parecidos com este" na página do perfume; "Sugestões Scento" em Explorar (por ocasião e guarda-roupa). Consultada só quando você abre essas telas; respostas guardadas por 7 dias no aparelho; sempre creditada e linkada, conforme os [termos](https://www.scento.com/terms-of-service#perfume-api) | Não — sem ela, essas seções mostram uma mensagem de indisponibilidade |
+| [Scento Perfume API](https://www.scento.com/developers) (grátis, sem chave) | "Perfil Scento" e "Parecidos com este" na página do perfume; ficha de cada nota ao tocar nela; "Sugestões Scento" em Explorar (por ocasião e guarda-roupa). Consultada só quando você abre essas telas; respostas guardadas por 7 dias no aparelho; sempre creditada e linkada, conforme os [termos](https://www.scento.com/terms-of-service#perfume-api) | Não — sem ela, essas seções mostram uma mensagem de indisponibilidade |
 | SerpApi — Google Shopping (pela Edge Function `price-search`) | "Ver preços": ofertas das lojas com preço e foto. Chave só no servidor; cache de 24 h; limite diário por pessoa | Não — sem ela, os preços são registrados à mão |
+| ScentVerdict (pela Edge Function `scentverdict`, grátis e sem chave) | Foto oficial, avaliação, duração estimada das notas e parecidos com ajuste (mais frescos, duram mais…). Respostas guardadas por 7 dias no aparelho | Não — sem ela, o cartão não aparece |
