@@ -20,20 +20,56 @@ interface WeatherValue {
   locationLabel?: string;
   usingBrowserLocation: boolean;
   geoState: GeoState;
-  /** Preferência salva na conta: detectar a localização ao abrir o app. */
-  autoLocation: boolean;
+  /** Escolha feita NESTE aparelho; undefined = ainda não perguntamos. */
+  locationMode?: LocationMode;
+  /** Modo "perguntar sempre": true depois de "Agora não" nesta abertura do app. */
+  askDismissed: boolean;
   refresh(): void;
   /** Pede a localização uma vez (permissão do navegador). */
   useBrowserLocation(): Promise<void>;
-  /** Liga a detecção automática (salva na conta) e já pede a localização. */
-  enableAutoLocation(): Promise<void>;
+  /** Salva a escolha (permitir sempre / perguntar sempre / não permitir) e age conforme ela. */
+  setLocationMode(mode: LocationMode): Promise<void>;
+  /** "Agora não" no modo perguntar sempre. */
+  dismissAsk(): void;
   setManual(snapshot: WeatherSnapshot | undefined): void;
 }
+
+/**
+ * Como o app usa a localização deste aparelho, como nos apps nativos:
+ * - always: usa sozinho; a posição aproximada fica guardada aqui por até 3 h,
+ *   para não pedir de novo a cada abertura;
+ * - ask: pergunta (dentro do app) a cada abertura;
+ * - never: nunca pede; usa a cidade salva ou o clima informado à mão.
+ */
+export type LocationMode = 'always' | 'ask' | 'never';
 
 const WeatherContext = createContext<WeatherValue | null>(null);
 const CACHE_KEY = 'parfumania.weatherCache';
 const MANUAL_KEY = 'parfumania.manualWeather';
 const CACHE_MS = 20 * 60 * 1000;
+const MODE_KEY = 'parfumania.locationMode';
+const ASK_DISMISSED_KEY = 'parfumania.locationAskDismissed';
+const LAST_LOCATION_KEY = 'parfumania.lastLocation';
+/** Por quanto tempo a localização aproximada é reaproveitada no modo "permitir sempre". */
+const LAST_LOCATION_MS = 3 * 60 * 60 * 1000;
+
+function readLocal<T>(key: string): T | undefined {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function writeLocal(key: string, value: unknown) {
+  try {
+    if (value === undefined) localStorage.removeItem(key);
+    else localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    /* sem armazenamento: vale só para esta sessão */
+  }
+}
 
 interface Location {
   coords: Coordinates;
@@ -64,6 +100,11 @@ export function WeatherProvider({ children }: { children: ReactNode }) {
   const [browserLocation, setBrowserLocation] = useState<Location>();
   const [geoState, setGeoState] = useState<GeoState>('idle');
   const autoTried = useRef(false);
+  // Quem tinha a antiga "detectar ao abrir" ligada começa em "permitir sempre".
+  const [locationMode, setModeState] = useState<LocationMode | undefined>(
+    () => readLocal<LocationMode>(MODE_KEY) ?? (settings.autoLocation ? 'always' : undefined),
+  );
+  const [askDismissed, setAskDismissed] = useState(() => readSession<boolean>(ASK_DISMISSED_KEY) === true);
   const [data, setData] = useState<WeatherData>();
   const [status, setStatus] = useState<WeatherStatus>('loading');
   const [error, setError] = useState<string>();
@@ -123,6 +164,14 @@ export function WeatherProvider({ children }: { children: ReactNode }) {
     };
   }, [dataStatus, enabled, location, nonce]);
 
+  const modeRef = useRef(locationMode);
+  modeRef.current = locationMode;
+
+  // As configurações da conta chegam depois da montagem: migra a antiga "detectar ao abrir".
+  useEffect(() => {
+    if (dataStatus === 'ready' && !locationMode && settings.autoLocation) setModeState('always');
+  }, [dataStatus, locationMode, settings.autoLocation]);
+
   const useBrowserLocation = useCallback(
     () =>
       new Promise<void>((resolve, reject) => {
@@ -134,13 +183,14 @@ export function WeatherProvider({ children }: { children: ReactNode }) {
         setGeoState('locating');
         navigator.geolocation.getCurrentPosition(
           async (pos) => {
-            // Arredondada (~1 km) e mantida apenas em memória: nunca é salva.
+            // Arredondada (~1 km). Só fica guardada neste aparelho (por até 3 h) no modo "permitir sempre".
             const coords = {
               latitude: Math.round(pos.coords.latitude * 100) / 100,
               longitude: Math.round(pos.coords.longitude * 100) / 100,
             };
             const name = (await reverseGeocode(coords)) ?? 'Sua localização atual';
             setBrowserLocation({ coords, name, fromBrowser: true });
+            if (modeRef.current === 'always') writeLocal(LAST_LOCATION_KEY, { coords, name, at: Date.now() });
             setGeoState('idle');
             resolve();
           },
@@ -150,7 +200,7 @@ export function WeatherProvider({ children }: { children: ReactNode }) {
             reject(
               new Error(
                 denied
-                  ? 'Permissão de localização negada. Libere no ícone de cadeado ao lado do endereço do site.'
+                  ? 'A localização está bloqueada para este site nos ajustes do aparelho ou do navegador.'
                   : 'Não foi possível obter sua localização.',
               ),
             );
@@ -161,15 +211,39 @@ export function WeatherProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  const enableAutoLocation = useCallback(async () => {
-    if (!settings.autoLocation) await updateSettings({ autoLocation: true });
-    await useBrowserLocation();
-  }, [settings.autoLocation, updateSettings, useBrowserLocation]);
+  const setLocationMode = useCallback(
+    async (mode: LocationMode) => {
+      setModeState(mode);
+      modeRef.current = mode;
+      writeLocal(MODE_KEY, mode);
+      if (mode !== 'always') writeLocal(LAST_LOCATION_KEY, undefined);
+      // Mantém a preferência antiga da conta coerente (usada só para migrar outros aparelhos).
+      if (settings.autoLocation !== (mode === 'always')) void updateSettings({ autoLocation: mode === 'always' }).catch(() => undefined);
+      if (mode === 'never') {
+        setBrowserLocation(undefined);
+        setGeoState('idle');
+        return;
+      }
+      await useBrowserLocation();
+    },
+    [settings.autoLocation, updateSettings, useBrowserLocation],
+  );
 
-  // Detecção automática ao abrir o app, se você ativou essa opção.
+  const dismissAsk = useCallback(() => {
+    setAskDismissed(true);
+    writeSession(ASK_DISMISSED_KEY, true);
+  }, []);
+
+  // "Permitir sempre": ao abrir, reaproveita a localização recente sem acionar o
+  // aviso do sistema; se ela tiver mais de 3 h, consulta de novo.
   useEffect(() => {
-    if (dataStatus !== 'ready' || !settings.autoLocation || !enabled || browserLocation || autoTried.current) return;
+    if (dataStatus !== 'ready' || locationMode !== 'always' || !enabled || browserLocation || autoTried.current) return;
     autoTried.current = true;
+    const last = readLocal<{ coords: Coordinates; name: string; at: number }>(LAST_LOCATION_KEY);
+    if (last && Date.now() - last.at < LAST_LOCATION_MS) {
+      setBrowserLocation({ coords: last.coords, name: last.name, fromBrowser: true });
+      return;
+    }
     const permissions = (navigator as Navigator & { permissions?: Permissions }).permissions;
     const ask = () => useBrowserLocation().catch(() => undefined);
     if (!permissions?.query) {
@@ -180,7 +254,7 @@ export function WeatherProvider({ children }: { children: ReactNode }) {
       .query({ name: 'geolocation' as PermissionName })
       .then((p) => (p.state === 'denied' ? setGeoState('denied') : void ask()))
       .catch(() => void ask());
-  }, [dataStatus, settings.autoLocation, enabled, browserLocation, useBrowserLocation]);
+  }, [dataStatus, locationMode, enabled, browserLocation, useBrowserLocation]);
 
   const setManual = useCallback((s: WeatherSnapshot | undefined) => {
     setManualState(s);
@@ -217,13 +291,15 @@ export function WeatherProvider({ children }: { children: ReactNode }) {
       locationLabel: location?.name,
       usingBrowserLocation: !!browserLocation,
       geoState,
-      autoLocation: settings.autoLocation,
+      locationMode,
+      askDismissed,
       refresh: () => setNonce((n) => n + 1),
       useBrowserLocation,
-      enableAutoLocation,
+      setLocationMode,
+      dismissAsk,
       setManual,
     }),
-    [status, data, error, manual, apiSnapshot, location, browserLocation, geoState, settings.autoLocation, useBrowserLocation, enableAutoLocation, setManual],
+    [status, data, error, manual, apiSnapshot, location, browserLocation, geoState, locationMode, askDismissed, useBrowserLocation, setLocationMode, dismissAsk, setManual],
   );
 
   return <WeatherContext.Provider value={value}>{children}</WeatherContext.Provider>;

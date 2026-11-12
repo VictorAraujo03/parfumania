@@ -36,7 +36,7 @@ export function PerfumeCard({ perfume }: { perfume: Perfume }) {
   return (
     <Link to={`/colecao/${perfume.id}`} className="perfume-card">
       <div className="perfume-card__media">
-        <PerfumeImage imageId={perfume.imageId} name={perfume.name} brand={perfume.brand} family={perfume.family} />
+        <PerfumeImage imageId={perfume.imageId} imageUrl={perfume.imageUrl} name={perfume.name} brand={perfume.brand} family={perfume.family} />
         <FavoriteButton perfume={perfume} />
         <div className="perfume-card__badges">
           {perfume.isDemo && <DemoBadge />}
@@ -60,6 +60,7 @@ export function PerfumeRow({ perfume }: { perfume: Perfume }) {
     <Link to={`/colecao/${perfume.id}`} className="perfume-row">
       <PerfumeImage
         imageId={perfume.imageId}
+        imageUrl={perfume.imageUrl}
         name={perfume.name}
         brand={perfume.brand}
         family={perfume.family}

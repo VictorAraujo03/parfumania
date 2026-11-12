@@ -142,9 +142,12 @@ function noteWarmth(note: string): number | undefined {
   return undefined;
 }
 
-const cache = new WeakMap<Perfume, OlfactoryProfile | null>();
+/** Perfume da coleção ou item do catálogo: basta ter acordes e notas. */
+export type ProfileSource = Pick<Perfume, 'accords' | 'topNotes' | 'heartNotes' | 'baseNotes'>;
 
-export function olfactoryProfile(p: Perfume): OlfactoryProfile | undefined {
+const cache = new WeakMap<ProfileSource, OlfactoryProfile | null>();
+
+export function olfactoryProfile(p: ProfileSource): OlfactoryProfile | undefined {
   const hit = cache.get(p);
   if (hit !== undefined) return hit ?? undefined;
 

@@ -79,6 +79,27 @@ Para um provedor que exija chave, implemente `WeatherProvider`
 (`src/services/weather/types.ts`) chamando uma função de servidor — por exemplo,
 `api/weather.ts` na Vercel — que guarda a chave em variável de ambiente do servidor.
 
+## Busca de preços nas lojas (opcional)
+
+O botão **Ver preços** consulta o Google Shopping (Sephora, Beleza na Web, Época,
+Amazon, Mercado Livre e outras) por meio da [SerpApi](https://serpapi.com) e mostra
+as 3 melhores ofertas do mesmo produto (mesmo perfume e volume, sem kits nem
+amostras), com foto. A chave da SerpApi fica **só no servidor**, numa Edge
+Function do Supabase; o app nunca a vê. Precisa do login (Supabase) configurado.
+
+1. **SerpApi:** crie uma conta grátis em serpapi.com e copie a sua *Private API Key*
+   (o plano gratuito tem uma cota mensal de buscas).
+2. **Tabelas:** no Supabase, abra o **SQL Editor** e rode `supabase/prices.sql`
+   (cache de 24 h compartilhado e limite de 25 buscas novas por pessoa por dia).
+3. **Segredo:** em **Edge Functions → Secrets**, adicione `SERPAPI_KEY` com a chave.
+4. **Função:** em **Edge Functions → Deploy a new function → Via Editor**, crie a
+   função `price-search`, cole o conteúdo de `supabase/functions/price-search/index.ts`
+   e publique. Deixe a verificação de JWT ligada (só usuários logados chamam).
+   Pela CLI: `npx supabase functions deploy price-search --project-ref <ref>`.
+
+Sem esses passos, o app continua funcionando: o botão mostra que a busca ainda não
+foi ativada, e dá para registrar ofertas à mão em **Preços**.
+
 ## Publicação
 
 O app usa `HashRouter` (URLs como `/#/colecao`), então funciona em qualquer
@@ -172,9 +193,11 @@ registro de uso fictício é criado, então estatísticas começam vazias.
 
 - Perfumes, registros, ofertas e configurações: `localStorage` (prefixo `parfumania.`).
 - Imagens: IndexedDB (`parfumania-images`), redimensionadas para no máximo 900 px.
-- A localização do navegador só é pedida ao clicar em "Usar minha localização",
-  é arredondada (~1 km) e mantida apenas em memória durante a sessão. A cidade
-  preferida guarda somente nome e coordenadas do centro da cidade.
+- Localização: cada aparelho escolhe **Permitir sempre**, **Perguntar sempre** ou
+  **Não permitir** (como nos apps nativos). A posição é sempre arredondada (~1 km).
+  Só no "Permitir sempre" ela fica guardada **neste aparelho** (`localStorage`) por
+  até 3 horas, para não pedir de novo a cada abertura; nunca vai para a nuvem. A
+  cidade preferida guarda somente nome e coordenadas do centro da cidade.
 - Limpar os dados do site no navegador apaga tudo: exporte backups em Configurações.
 
 ## Arquitetura
@@ -219,6 +242,7 @@ backups antigos.
 | Serviço | Uso | Obrigatório? |
 |---|---|---|
 | Open-Meteo (forecast + geocoding) | clima atual, previsão e busca de cidade | Não — há entrada manual |
-| BigDataCloud (reverse geocode, client) | nome da cidade a partir da localização do aparelho (coordenadas arredondadas ~1 km, só com a opção ativada) | Não — sem ele, aparece "Sua localização atual" |
+| BigDataCloud (reverse geocode, client) | nome da cidade a partir da localização do aparelho (coordenadas arredondadas ~1 km, só com a localização permitida; no modo "Permitir sempre" a posição aproximada fica guardada no aparelho por até 3 h) | Não — sem ele, aparece "Sua localização atual" |
 | Google Fonts | Cormorant Garamond e Inter | Não — há fontes de sistema como alternativa |
 | [Scento Perfume API](https://www.scento.com/developers) (grátis, sem chave) | "Perfil Scento" e "Parecidos com este" na página do perfume; "Sugestões Scento" em Explorar (por ocasião e guarda-roupa). Consultada só quando você abre essas telas; respostas guardadas por 7 dias no aparelho; sempre creditada e linkada, conforme os [termos](https://www.scento.com/terms-of-service#perfume-api) | Não — sem ela, essas seções mostram uma mensagem de indisponibilidade |
+| SerpApi — Google Shopping (pela Edge Function `price-search`) | "Ver preços": ofertas das lojas com preço e foto. Chave só no servidor; cache de 24 h; limite diário por pessoa | Não — sem ela, os preços são registrados à mão |

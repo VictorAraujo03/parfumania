@@ -77,6 +77,8 @@ export interface Perfume {
   notes?: string;
   /** Referência para a imagem guardada no IndexedDB. */
   imageId?: string;
+  /** Foto de loja (link externo) escolhida na busca de preços; usada quando não há foto própria. */
+  imageUrl?: string;
   favorite: boolean;
   status: PerfumeStatus;
   createdAt: string;

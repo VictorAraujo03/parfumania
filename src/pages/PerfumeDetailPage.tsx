@@ -18,6 +18,7 @@ import {
 } from '../data/options';
 import { NotesPyramid } from '../features/collection/NotesPyramid';
 import { ScentoProfileCard } from '../features/scento/ScentoProfileCard';
+import { PriceButton } from '../features/prices/PriceButton';
 import { UsageDialog } from '../features/usage/UsageDialog';
 import { UsageLogList } from '../features/usage/UsageLogList';
 import { useAppData, usePerfume } from '../hooks/useAppData';
@@ -104,7 +105,7 @@ export function PerfumeDetailPage() {
       </Link>
 
       <section className="detail-hero">
-        <PerfumeImage imageId={p.imageId} name={p.name} brand={p.brand} family={p.family} className="detail-hero__image" />
+        <PerfumeImage imageId={p.imageId} imageUrl={p.imageUrl} name={p.name} brand={p.brand} family={p.family} className="detail-hero__image" />
         <div className="detail-hero__info">
           <p className="eyebrow">{p.brand || 'Marca não informada'}</p>
           <h1 className="page-title">{p.name}</h1>
@@ -127,6 +128,7 @@ export function PerfumeDetailPage() {
             <Button icon={Heart} onClick={() => void toggleFavorite(p.id)} aria-pressed={p.favorite} className={p.favorite ? 'is-fav' : ''}>
               {p.favorite ? 'Favorito' : 'Favoritar'}
             </Button>
+            <PriceButton target={{ name: p.name, brand: p.brand, volumeMl: p.volumeMl, perfume: p }} variant="secondary" size="md" />
             <ButtonLink to={`/colecao/${p.id}/editar`} icon={Pencil} variant="ghost">
               Editar
             </ButtonLink>

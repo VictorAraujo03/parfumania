@@ -1,12 +1,12 @@
-import { useDeferredValue, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useDeferredValue, useEffect, useMemo, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { BookOpen, Check, Search } from 'lucide-react';
 import { InlineSelect } from '../components/fields';
 import { PerfumeImage } from '../components/PerfumeImage';
 import { Badge, EmptyState, Notice, PageHeader, Tabs } from '../components/ui';
 import { CONCENTRATION_SHORT, CONCENTRATIONS, FAMILIES, OCCASIONS, labelOf } from '../data/options';
 import { CatalogDetailModal } from '../features/discovery/CatalogDetailModal';
-import { GapAnalysis } from '../features/discovery/GapAnalysis';
+import { CollectionGaps } from '../features/discovery/CollectionGaps';
 import { ScentoDiscover } from '../features/scento/ScentoDiscover';
 import { useAppData } from '../hooks/useAppData';
 import { useLocalPref } from '../hooks/useLocalPref';
@@ -19,6 +19,14 @@ import { perfumeKey } from '../utils/text';
 export function ExplorePage() {
   const { perfumes } = useAppData();
   const [tab, setTab] = useLocalPref<'catalog' | 'scento' | 'gaps'>('exploreTab', 'catalog');
+  // ?aba=falta (atalho do painel) abre direto "O que falta".
+  const [params] = useSearchParams();
+  const tabParam = params.get('aba');
+  useEffect(() => {
+    if (tabParam === 'falta') setTab('gaps');
+    else if (tabParam === 'scento') setTab('scento');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tabParam]);
   const [text, setText] = useState('');
   const [family, setFamily] = useState<OlfactoryFamily | ''>('');
   const [concentration, setConcentration] = useState<Concentration | ''>('');
@@ -64,7 +72,7 @@ export function ExplorePage() {
         tabs={[
           { value: 'catalog', label: 'Catálogo' },
           { value: 'scento', label: 'Sugestões Scento' },
-          { value: 'gaps', label: 'Expandir a coleção' },
+          { value: 'gaps', label: 'O que falta' },
         ]}
       />
 
@@ -146,7 +154,7 @@ export function ExplorePage() {
       ) : tab === 'scento' ? (
         <ScentoDiscover />
       ) : (
-        <GapAnalysis onOpenEntry={setSelected} />
+        <CollectionGaps onOpenEntry={setSelected} />
       )}
 
       <CatalogDetailModal entry={selected} owned={selected ? findRegistered(selected) : undefined} onClose={() => setSelected(undefined)} />

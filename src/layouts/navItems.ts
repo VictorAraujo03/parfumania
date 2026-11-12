@@ -15,6 +15,6 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/recomendacoes', label: 'Recomendações', icon: Sparkles, primaryMobile: true },
   { to: '/estatisticas', label: 'Estatísticas', icon: BarChart3, primaryMobile: true },
   { to: '/explorar', label: 'Explorar perfumes', icon: Compass },
-  { to: '/precos', label: 'Preços', icon: Tag, badge: 'Manual' },
+  { to: '/precos', label: 'Preços', icon: Tag },
   { to: '/configuracoes', label: 'Configurações', icon: Settings },
 ];

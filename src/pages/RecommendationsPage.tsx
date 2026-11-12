@@ -197,7 +197,7 @@ export function RecommendationsPage() {
                     <ul className="manual-pick">
                       {eligible.map((p) => (
                         <li key={p.id}>
-                          <PerfumeImage imageId={p.imageId} name={p.name} brand={p.brand} family={p.family} className="manual-pick__thumb" />
+                          <PerfumeImage imageId={p.imageId} imageUrl={p.imageUrl} name={p.name} brand={p.brand} family={p.family} className="manual-pick__thumb" />
                           <div>
                             <Link to={`/colecao/${p.id}`} className="manual-pick__name">
                               {p.name}

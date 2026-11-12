@@ -24,7 +24,7 @@ import {
 import { Button } from '../../components/Button';
 import { useAppData } from '../../hooks/useAppData';
 import { useToast } from '../../hooks/useToast';
-import { useWeather } from '../../hooks/useWeather';
+import { useWeather, type LocationMode } from '../../hooks/useWeather';
 import { formatTemperature } from '../../utils/format';
 import { ManualWeatherDialog } from './ManualWeatherDialog';
 import { WeatherScene } from './WeatherScene';
@@ -59,16 +59,20 @@ export function WeatherWidget({ compact, title }: { compact?: boolean; title?: s
   const [locating, setLocating] = useState(false);
   const unit = settings.temperatureUnit;
 
-  async function locate() {
+  async function run(action: () => Promise<void>) {
     setLocating(true);
     try {
-      await weather.enableAutoLocation();
+      await action();
     } catch (err) {
       notify(err instanceof Error ? err.message : 'Falha ao obter localização.', 'error');
     } finally {
       setLocating(false);
     }
   }
+  const choose = (mode: LocationMode) => run(() => weather.setLocationMode(mode));
+  const locateOnce = () => run(() => weather.useBrowserLocation());
+  // Modo "perguntar sempre": oferece a localização a cada abertura, até a pessoa responder.
+  const offerAsk = weather.locationMode === 'ask' && !weather.usingBrowserLocation && !weather.askDismissed;
 
   const s = weather.snapshot;
   const scene = useMemo(
@@ -130,6 +134,17 @@ export function WeatherWidget({ compact, title }: { compact?: boolean; title?: s
           </div>
         ) : null}
         {tip && <p className="weather__tip">{tip}</p>}
+        {offerAsk && !weather.manual && (
+          <div className="weather__ask">
+            <span>Usar sua localização atual?</span>
+            <Button size="sm" variant="secondary" icon={LocateFixed} onClick={locateOnce} disabled={locating}>
+              {locating ? 'Localizando…' : 'Usar'}
+            </Button>
+            <Button size="sm" variant="ghost" onClick={weather.dismissAsk}>
+              Agora não
+            </Button>
+          </div>
+        )}
         {/* Canto inferior direito: atualizar (ou editar, se o clima foi informado à mão). */}
         <div className="weather__corner">
           {weather.manual ? (
@@ -146,12 +161,60 @@ export function WeatherWidget({ compact, title }: { compact?: boolean; title?: s
         {weather.geoState === 'locating' ? 'Detectando sua localização…' : `Consultando o clima de ${weather.locationLabel}…`}
       </div>
     );
+  } else if (weather.status === 'no_location' && weather.geoState !== 'denied' && (!weather.locationMode || offerAsk)) {
+    // Pergunta como nos apps nativos — a escolha fica salva neste aparelho.
+    const first = !weather.locationMode;
+    content = (
+      <div className="weather__permission">
+        <LocateFixed size={24} strokeWidth={1.4} aria-hidden />
+        <p className="weather__permission-title">
+          {first ? 'Permitir que o Parfumania use sua localização?' : 'Usar sua localização agora?'}
+        </p>
+        <p className="weather__permission-text">
+          {first
+            ? 'Para mostrar o clima de onde você está e recomendar o perfume ideal para o dia. Usamos só a posição aproximada (~1 km).'
+            : 'Você escolheu que o app pergunte sempre.'}
+        </p>
+        <div className="weather__permission-actions">
+          {first ? (
+            <>
+              <Button variant="primary" onClick={() => choose('always')} disabled={locating}>
+                {locating ? 'Localizando…' : 'Permitir sempre'}
+              </Button>
+              <Button variant="secondary" onClick={() => choose('ask')} disabled={locating}>
+                Perguntar sempre
+              </Button>
+              <Button variant="ghost" onClick={() => choose('never')} disabled={locating}>
+                Não permitir
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="primary" icon={LocateFixed} onClick={locateOnce} disabled={locating}>
+                {locating ? 'Localizando…' : 'Usar agora'}
+              </Button>
+              <Button variant="ghost" onClick={weather.dismissAsk}>
+                Agora não
+              </Button>
+            </>
+          )}
+        </div>
+        {first && (
+          <p className="weather__permission-hint">
+            “Permitir sempre” guarda a posição aproximada neste aparelho por até 3 horas, para não perguntar a cada
+            abertura. Dá para mudar em Configurações.
+          </p>
+        )}
+      </div>
+    );
   } else {
     const message =
       weather.geoState === 'denied'
-        ? 'A permissão de localização está bloqueada neste navegador. Libere no ícone de cadeado ao lado do endereço do site ou defina uma cidade.'
+        ? 'A localização está bloqueada para este site. No iPhone: Ajustes › Privacidade e Segurança › Serviços de Localização › Sites do Safari › “Durante o Uso”. No computador: ícone de cadeado ao lado do endereço. Ou defina uma cidade.'
         : weather.status === 'no_location'
-          ? 'Use sua localização para ver o clima e receber a recomendação ideal para o dia. O app lembra sua escolha.'
+          ? weather.locationMode === 'never'
+            ? 'Localização desativada neste aparelho. Defina uma cidade ou informe o clima.'
+            : 'Sem localização no momento. Defina uma cidade, informe o clima ou use sua localização.'
           : weather.status === 'disabled'
             ? 'A integração meteorológica está desativada.'
             : `Clima indisponível: ${weather.error ?? 'erro desconhecido'}`;
@@ -160,8 +223,8 @@ export function WeatherWidget({ compact, title }: { compact?: boolean; title?: s
         <CloudOff size={22} strokeWidth={1.4} aria-hidden />
         <p>{message}</p>
         <div className="weather__actions">
-          {weather.status === 'no_location' && weather.geoState !== 'denied' && (
-            <Button size="sm" variant="primary" icon={LocateFixed} onClick={locate} disabled={locating}>
+          {weather.status === 'no_location' && weather.geoState !== 'denied' && weather.locationMode !== 'never' && (
+            <Button size="sm" variant="primary" icon={LocateFixed} onClick={locateOnce} disabled={locating}>
               {locating ? 'Localizando…' : 'Usar minha localização'}
             </Button>
           )}

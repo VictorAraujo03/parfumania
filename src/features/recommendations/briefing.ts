@@ -36,6 +36,15 @@ export interface BriefingContext {
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
+/** Rótulos curtos usados no resumo do momento. */
+const MOMENT_OCCASION: Partial<Record<Occasion, string>> = {
+  work: 'Trabalho',
+  sport: 'Treino',
+  casual: 'Passeio',
+  date: 'Encontro',
+  party: 'Festa',
+};
+
 /** Razões que são ressalvas, mesmo dentro de um critério que pontuou. */
 const CAUTION = /pode |tende |, mas |demais|despercebida|curta|reaplicar/i;
 
@@ -101,7 +110,7 @@ export function buildBriefing(rec: Recommendation, ctx: BriefingContext): Briefi
   const moment = [
     `${periodLabel}${adj ? ` ${adj}` : ''}`,
     ctx.temperatureC !== undefined ? fmt(ctx.temperatureC) : null,
-    ctx.occasion ? labelOf(OCCASIONS, ctx.occasion) : null,
+    ctx.occasion ? MOMENT_OCCASION[ctx.occasion] ?? labelOf(OCCASIONS, ctx.occasion) : null,
     ctx.environment ? labelOf(ENVIRONMENTS, ctx.environment) : null,
   ]
     .filter(Boolean)

@@ -10,6 +10,7 @@ import { scentoFamily, scentoNote, scentoRole } from '../../services/scento/labe
 import type { Perfume } from '../../types';
 import { normalize } from '../../utils/text';
 import { EMPTY_FORM, formToInput } from '../collection/perfumeFormModel';
+import { PriceButton } from '../prices/PriceButton';
 import { ScentoText } from './ScentoText';
 
 export interface PickItem {
@@ -143,6 +144,11 @@ export function ScentoPicks({ items, context }: { items: PickItem[]; context: st
             </p>
           )}
           {it.why && <ScentoText className="scento-pick__why" text={it.why} />}
+          {(!owned || owned.status === 'wishlist') && (
+            <div className="scento-pick__foot">
+              <PriceButton target={{ name: it.name, brand: it.house, perfume: owned }} />
+            </div>
+          )}
         </li>
       ))}
     </ul>

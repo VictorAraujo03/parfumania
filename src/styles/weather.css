@@ -359,3 +359,57 @@
     transform: none;
   }
 }
+
+/* Pedido de localização (como nos apps nativos) */
+.weather__permission {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.weather__permission > svg {
+  color: var(--gold);
+}
+
+.weather__permission-title {
+  font-family: var(--font-display);
+  font-size: 21px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.weather__permission-text,
+.weather__permission-hint {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.weather__permission-hint {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+.weather__permission-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.weather__permission-actions .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.weather__ask {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.weather__ask > span {
+  flex: 1 1 100%;
+}

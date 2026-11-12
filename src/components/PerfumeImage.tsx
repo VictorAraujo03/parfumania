@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { FAMILY_HUES } from '../data/options';
 import { useImage } from '../hooks/useImage';
 import type { OlfactoryFamily } from '../types';
@@ -7,6 +8,8 @@ interface PerfumeImageProps {
   imageId?: string;
   /** Pré-visualização direta (formulário). */
   src?: string;
+  /** Foto de loja escolhida pelo usuário (link externo), usada se não houver foto própria. */
+  imageUrl?: string;
   name: string;
   brand?: string;
   family?: OlfactoryFamily;
@@ -16,21 +19,29 @@ interface PerfumeImageProps {
 const SHAPES = ['round', 'tall', 'square'] as const;
 
 /** Imagem local do perfume ou um placeholder elegante gerado em SVG. */
-export function PerfumeImage({ imageId, src, name, brand, family, className = '' }: PerfumeImageProps) {
+export function PerfumeImage({ imageId, src, imageUrl, name, brand, family, className = '' }: PerfumeImageProps) {
   const stored = useImage(src ? undefined : imageId);
-  const url = src ?? stored;
+  const [broken, setBroken] = useState<string>();
+  const remote = imageUrl && imageUrl !== broken ? imageUrl : undefined;
+  const url = src ?? stored ?? remote;
 
   if (url) {
     return (
-      <div className={`perfume-image ${className}`}>
-        <img src={url} alt={`Frasco de ${name}`} loading="lazy" />
+      <div className={`perfume-image ${remote && url === remote ? 'perfume-image--remote' : ''} ${className}`}>
+        <img
+          src={url}
+          alt={`Frasco de ${name}`}
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          onError={() => url === remote && setBroken(remote)}
+        />
       </div>
     );
   }
   return <BottlePlaceholder name={name} brand={brand} family={family} className={className} />;
 }
 
-function BottlePlaceholder({ name, brand, family, className }: Omit<PerfumeImageProps, 'imageId' | 'src'>) {
+function BottlePlaceholder({ name, brand, family, className }: Omit<PerfumeImageProps, 'imageId' | 'src' | 'imageUrl'>) {
   const h = hashString(`${brand ?? ''}${name}`);
   const hue = FAMILY_HUES[family ?? 'other'];
   const shape = SHAPES[h % SHAPES.length];
