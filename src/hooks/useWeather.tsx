@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { WEATHER_INTEGRATION_ENABLED, weatherProvider, type Coordinates } from '../services/weather';
+import { clearAccountLocation, syncAccountLocation } from '../services/supabase/accountLocation';
 import { reverseGeocode } from '../services/weather/reverseGeocode';
 import type { WeatherData, WeatherSnapshot } from '../types';
 import { useAppData } from './useAppData';
@@ -190,7 +191,11 @@ export function WeatherProvider({ children }: { children: ReactNode }) {
             };
             const name = (await reverseGeocode(coords)) ?? 'Sua localização atual';
             setBrowserLocation({ coords, name, fromBrowser: true });
-            if (modeRef.current === 'always') writeLocal(LAST_LOCATION_KEY, { coords, name, at: Date.now() });
+            if (modeRef.current === 'always') {
+              writeLocal(LAST_LOCATION_KEY, { coords, name, at: Date.now() });
+              // Notificações e widget (servidor) usam a posição aproximada da conta.
+              void syncAccountLocation(coords, name);
+            }
             setGeoState('idle');
             resolve();
           },
@@ -216,7 +221,10 @@ export function WeatherProvider({ children }: { children: ReactNode }) {
       setModeState(mode);
       modeRef.current = mode;
       writeLocal(MODE_KEY, mode);
-      if (mode !== 'always') writeLocal(LAST_LOCATION_KEY, undefined);
+      if (mode !== 'always') {
+        writeLocal(LAST_LOCATION_KEY, undefined);
+        void clearAccountLocation();
+      }
       // Mantém a preferência antiga da conta coerente (usada só para migrar outros aparelhos).
       if (settings.autoLocation !== (mode === 'always')) void updateSettings({ autoLocation: mode === 'always' }).catch(() => undefined);
       if (mode === 'never') {

@@ -115,6 +115,37 @@ diretas do navegador; por isso há uma função-ponte que repassa só essas cons
 
 As respostas ficam guardadas por 7 dias no aparelho.
 
+## Notificações e widget do iPhone (opcional)
+
+**Notificações:** em horários sorteados de manhã, à tarde e/ou à noite, o app
+sugere um perfume **da sua coleção** de acordo com o clima ("Nossa, que calorzão!
+Que tal usar o Acqua di Giò hoje?"). No iPhone funcionam no app da tela de início
+(iOS 16.4+). **Widget:** o perfume do dia, o clima e alternativas na tela de início
+ou bloqueada, pelo app gratuito **Scriptable**. As duas coisas usam a função
+`parfumania-daily`, que escolhe o perfume no servidor.
+
+O clima vem da **localização aproximada da conta** (arredondada a ~10 km, gravada só
+no modo "Permitir sempre" e apagada nos outros) ou, se não houver, da **cidade salva**
+em Configurações.
+
+1. **Tabelas:** no SQL Editor, rode a **Parte 1** de `supabase/daily.sql`.
+2. **Chaves VAPID:** já geradas em `.env.vapid` (arquivo local, fora do Git).
+   - No GitHub: **Settings → Secrets and variables → Actions → Variables**, crie
+     `VITE_VAPID_PUBLIC_KEY` com o valor de `VAPID_PUBLIC_KEY` (é pública).
+   - No Supabase: **Edge Functions → Secrets**, crie `VAPID_PUBLIC_KEY` e
+     `VAPID_PRIVATE_KEY` com os valores do arquivo, e `VAPID_SUBJECT` com
+     `mailto:seu-email`. A chave privada nunca vai para o app nem para o Git.
+3. **Função:** crie `parfumania-daily` (Via Editor) com o conteúdo de
+   `supabase/functions/parfumania-daily/index.ts` e **desligue** "Verify JWT with
+   legacy secret" (o widget e o agendamento não enviam login; a função confere
+   cada caso: chave secreta, login ou a chave pessoal do widget).
+4. **Agendamento:** em **Database → Extensions**, ligue `pg_cron` e `pg_net`; depois
+   rode a **Parte 2** de `supabase/daily.sql` (troque a URL do projeto e cole uma chave
+   secreta — ela fica no Vault do Supabase). A função roda a cada 10 minutos e só
+   envia para quem chegou no horário sorteado.
+5. No app: **Configurações → Notificações → Ativar** (no iPhone, abrindo pelo ícone
+   da tela de início) e **Configurações → Widget do iPhone → Gerar e copiar script**.
+
 ## Publicação
 
 O app usa `HashRouter` (URLs como `/#/colecao`), então funciona em qualquer
@@ -272,3 +303,4 @@ backups antigos.
 | [Scento Perfume API](https://www.scento.com/developers) (grátis, sem chave) | "Perfil Scento" e "Parecidos com este" na página do perfume; ficha de cada nota ao tocar nela; "Sugestões Scento" em Explorar (por ocasião e guarda-roupa). Consultada só quando você abre essas telas; respostas guardadas por 7 dias no aparelho; sempre creditada e linkada, conforme os [termos](https://www.scento.com/terms-of-service#perfume-api) | Não — sem ela, essas seções mostram uma mensagem de indisponibilidade |
 | SerpApi — Google Shopping (pela Edge Function `price-search`) | "Ver preços": ofertas das lojas com preço e foto. Chave só no servidor; cache de 24 h; limite diário por pessoa | Não — sem ela, os preços são registrados à mão |
 | ScentVerdict (pela Edge Function `scentverdict`, grátis e sem chave) | Foto oficial, avaliação, duração estimada das notas e parecidos com ajuste (mais frescos, duram mais…). Respostas guardadas por 7 dias no aparelho | Não — sem ela, o cartão não aparece |
+| Função `parfumania-daily` + Web Push (APNs/FCM, chaves VAPID) | Notificações do perfume do dia em horários sorteados e dados do widget do iPhone (Scriptable). Clima pela localização aproximada da conta ou pela cidade salva | Não — sem ela, não há notificações nem widget |
