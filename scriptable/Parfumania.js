@@ -2,6 +2,9 @@
 // Gerado pelo app em Configurações → Widget do iPhone. Não compartilhe:
 // a linha TOKEN é a sua chave pessoal (dá para revogar no app).
 // Tamanhos: pequeno, médio, grande e tela bloqueada (retangular, em linha, circular).
+// Ao tocar, abre o perfume no SAFARI (onde o app foi adicionado), mesmo que o
+// navegador padrão seja outro. Para abrir no navegador padrão, escreva "chrome"
+// no campo Parameter do widget.
 
 const ENDPOINT = '__ENDPOINT__';
 const TOKEN = '__TOKEN__';
@@ -69,7 +72,12 @@ function weatherSymbol(w) {
 }
 
 const temp = (w) => (w && typeof w.temperatureC === 'number' ? `${Math.round(w.temperatureC)}°` : '');
-const deepLink = (data, id) => `${data.appUrl}#/colecao/${id}`;
+// "x-safari-https://" (iOS 17+) força o Safari; com o Parameter "chrome", usa o navegador padrão.
+const useDefaultBrowser = String(args.widgetParameter || '').trim().toLowerCase() === 'chrome';
+const deepLink = (data, id) => {
+  const url = `${data.appUrl}#/colecao/${id}`;
+  return useDefaultBrowser ? url : url.replace(/^https:\/\//, 'x-safari-https://');
+};
 
 function background(widget) {
   const g = new LinearGradient();
