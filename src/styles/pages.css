@@ -3013,3 +3013,25 @@
   font-weight: 600;
   color: var(--text-muted);
 }
+
+/* =================== Notificações e widget =================== */
+.notifications__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.widget-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-left: 1.2em;
+  list-style: decimal;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.widget-steps strong {
+  color: var(--text);
+}

@@ -6,7 +6,9 @@ import { AccountCard } from '../features/account/AccountCard';
 import { CatalogManagement } from '../features/settings/CatalogManagement';
 import { CitySearch } from '../features/settings/CitySearch';
 import { DataManagement } from '../features/settings/DataManagement';
+import { NotificationsCard } from '../features/settings/NotificationsCard';
 import { WeightsEditor } from '../features/settings/WeightsEditor';
+import { WidgetCard } from '../features/settings/WidgetCard';
 import { useAppData } from '../hooks/useAppData';
 import { useToast } from '../hooks/useToast';
 import { useWeather, type LocationMode } from '../hooks/useWeather';
@@ -178,6 +180,9 @@ export function SettingsPage() {
           />
         </Row>
       </Card>
+
+      <NotificationsCard />
+      <WidgetCard />
 
       <Card>
         <CardHeader title="Motor de recomendação" subtitle="Pesos de cada critério (0–100) e faixas de temperatura. Detalhes em docs/RECOMENDACOES.md." />
